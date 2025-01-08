@@ -264,6 +264,7 @@
             display: flex;
             flex-direction: column;
             gap: 1rem;
+            align-items: flex-start;
         }
 
         .footer-section h3 {
@@ -287,6 +288,23 @@
 
         .footer-section a:hover {
             color: #0984e3;
+        }
+        
+        .social-icons {
+          display: flex;
+          gap: 1rem;
+          justify-content: center;
+          margin-right: -4px;
+        }
+
+        .social-icons img {
+          width: 24px;
+          height: 24px;
+          transition: opacity 0.3s ease;
+        }
+
+        .social-icons a:hover img {
+          opacity: 0.8;
         }
 
         .footer-bottom {
@@ -389,30 +407,61 @@
 
     <footer class="main-footer">
         <div class="footer-container">
+          <div class="footer-section">
+            <h3>רשתות חברתיות</h3>
+             <div class="social-icons">
+             <a href="https://www.linkedin.com/in/rotem-kanon" target="_blank">
+               <img src="https://cdn-icons-png.flaticon.com/512/145/145807.png" alt="LinkedIn">
+             </a>
+             <a href="https://github.com/tools-by-rotem" target="_blank">
+               <img src="https://cdn-icons-png.flaticon.com/512/2111/2111432.png" alt="GitHub">
+             </a>
+           </div>
+        </div>
             <div class="footer-section">
-                <h3>ניווט מהיר</h3>
+                <h3>כמויות חיפושים</h3>
                 <ul>
-                    <li><a href="#tools">כלים</a></li>
-                    <li><a href="#about">אודות</a></li>
-                    <li><a href="#contact">צור קשר</a></li>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/google-search-volume">כמות חיפושים בגוגל</a></li>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/spotify-search-volume">כמות חיפושים בספוטיפיי</a></li>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/soundcloud-search-volume">כמות חיפושים בסאונדקלאוד </a></li>
                 </ul>
             </div>
             <div class="footer-section">
-                <h3>קטגוריות כלים</h3>
+                <h3>תצוגה מקדימה</h3>
                 <ul>
-                    <li><a href="#search">כמויות חיפושים</a></li>
-                    <li><a href="#preview">תצוגה מקדימה</a></li>
-                    <li><a href="#optimization">אופטימיזציה</a></li>
-                    <li><a href="#creation">יצירה ועיצוב</a></li>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/google-serp-preview">תצוגה מקדימה לנראות בגוגל</a></li>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/social-link-preview">תצוגה מקדימה לרשתות חברתיות</a></li>
                 </ul>
             </div>
             <div class="footer-section">
-                <h3>קישורים חיצוניים</h3>
+                <h3>אופטימיזציה</h3>
                 <ul>
-                    <li><a href="https://www.linkedin.com/in/rotem-kanon" target="_blank">LinkedIn</a></li>
-                    <li><a href="https://github.com/tools-by-rotem" target="_blank">GitHub</a></li>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/page-speed-test">בדיקת מהירות טעינה</a></li>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/mobile-simulator">בדיקת תאימות למכשירים ניידים</a></li>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/image-minify-converter">המרת פורמט וכיווץ משקל תמונה</a></li>
                 </ul>
             </div>
+            <div class="footer-section">
+                <h3>יצירה ועיצוב</h3>
+                <ul>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/background-remover">הסרת רקע מתמונה</a></li>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/draw">ציור אינטראקטיבי</a></li>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/image-color-identifier">זיהוי צבעי תמונה</a></li>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/infographics">יצירת אינפוגרפיקות</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>שונות</h3>
+                <ul>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/accessibility-toolbar">סרגל נגישות</a></li>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/navigation-links-generator">מחולל קישורי ניווט</a></li>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/reverse-typing-fix">תיקון הקלדה הפוכה</a></li>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/strong-password-generator">מחולל סיסמאות חזקות</a></li>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/time-to-go-home">הגיע הזמן ללכת הביתה</a></li>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/resume-scanner">התאמת קורות חיים לסורקים אוטומטיים</a></li>
+                </ul>
+            </div>
+            
         </div>
         <div class="footer-bottom">
             <p>© 2024 כל הזכויות שמורות לרותם קנון</p>
