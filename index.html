@@ -1,18 +1,544 @@
 <!DOCTYPE html>
-<html dir="rtl" lang="he">
+<html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>סרגל נגישות מתקדם לאתרי וורדפרס | Tools by Rotem</title>
+    <meta name="description" content="רוצים לשפר את נגישות אתר הוורדפרס שלכם עבור גולשים בעלי מוגבלויות? מוזמנים להוסיף את תוסף הנגישות שפיתחתי לאתר שלכם ולהפוך אותו לנגיש יותר. להורדת התוסף היכנסו >>>">
     <meta name="robots" content="noindex,nofollow">
-    <title>זהו עמוד ניסיונות</title>
-    <meta name="description" content="לרוב גם ככה לא יהיה פה שום דבר">
-    <script src="https://cdn.enable.co.il/licenses/enable-L34385vlixga9kjh-1224-66195/init.js"></script>
+    <link rel="canonical" href="https://tools-by-rotem.github.io/webtools/accessibility-toolbar"/>
+    <link rel="icon" type="image/x-icon" href="/webtools/site-favicon.ico">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            font-size: 16px;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            transition: all 0.3s ease;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: #333;
+        }
+
+        body.high-contrast {
+            background-color: #000;
+            color: #fff;
+        }
+
+        body.high-contrast .main-content {
+            background-color: #000;
+        }
+
+        body.high-contrast a {
+            color: #ffff00;
+        }
+
+        body.high-contrast .content {
+            background-color: #000;
+            color: #fff;
+        }
+
+        body.high-contrast #accessibility-toolbar button {
+            background-color: #fff;
+            color: #000;
+        }
+
+        body.grayscale {
+            filter: grayscale(100%);
+            -webkit-filter: grayscale(100%);
+        }
+
+        body.highlight-links a {
+            background-color: #ffff00;
+            color: #000;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+
+        body.text-spacing {
+            letter-spacing: 0.12em;
+            word-spacing: 0.16em;
+            line-height: 1.8;
+        }
+
+        body.text-spacing p {
+            margin-bottom: 1.5em;
+        }
+
+        .main-header {
+            background-color: #2d3436;
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .logo img {
+            height: 60px;
+            width: auto;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .content {
+            text-align: center;
+            padding: 2rem;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .content h1 {
+            margin-bottom: 1rem;
+        }
+
+        .content p {
+            margin-bottom: 2rem;
+        }
+
+        .content a {
+            color: #6c63ff;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border: 2px solid #6c63ff;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .content a:hover {
+            background-color: #6c63ff;
+            color: #fff;
+        }
+
+        #accessibility-toolbar {
+            position: fixed;
+            top: 0;
+            right: -320px;
+            width: 300px;
+            height: 100%;
+            background-color: #343a40;
+            padding: 20px;
+            border-radius: 10px 0 0 10px;
+            z-index: 1001;
+            box-shadow: -2px 0 10px rgba(0, 0, 0, 0.3);
+            transition: right 0.3s ease;
+        }
+
+        #accessibility-toolbar h2 {
+            color: white;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        #accessibility-toggle {
+            position: fixed;
+            top: 90px;
+            right: 20px;
+            background-color: #6c63ff;
+            color: white;
+            padding: 15px;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            z-index: 1002;
+            font-size: 24px;
+            transition: all 0.3s ease;
+        }
+
+        #accessibility-toggle:hover {
+            background-color: #5753d1;
+            transform: scale(1.1);
+        }
+
+        #accessibility-toolbar button {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background-color: #6c63ff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        #accessibility-toolbar button:hover {
+            background-color: #5753d1;
+            transform: translateY(-2px);
+        }
+
+        #modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        #modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        #close-modal {
+            background-color: #dc3545;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background-color 0.3s ease;
+        }
+
+        #close-modal:hover {
+            background-color: #c82333;
+        }
+
+        .main-footer {
+            background-color: #2d3436;
+            color: white;
+            padding: 3rem 0 1.5rem;
+            margin-top: 4rem;
+        }
+
+        .footer-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .footer-section {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .footer-section h3 {
+            color: white;
+            margin-bottom: 1rem;
+        }
+
+        .footer-section ul {
+            list-style: none;
+        }
+
+        .footer-section ul li {
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-section a {
+            color: #ddd;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-section a:hover {
+            color: #6c63ff;
+        }
+
+        .social-icons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-right: -4px;
+        }
+
+        .social-icons img {
+            width: 24px;
+            height: 24px;
+            transition: opacity 0.3s ease;
+        }
+
+        .social-icons img:hover {
+            opacity: 0.8;
+        }
+
+        .footer-bottom {
+            text-align: center;
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid #444;
+        }
+
+        @media (max-width: 768px) {
+            .header-container {
+                padding: 0 1rem;
+            }
+
+            .main-content {
+                padding: 1rem;
+            }
+
+            .content a {
+                display: inline-block;
+                width: 100%;
+                text-align: center;
+                font-size: 14px;
+                padding: 0.8rem;
+            }
+
+            .footer-container {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .footer-section {
+                align-items: center;
+            }
+
+            #accessibility-toggle {
+                top: 80px;
+                right: 10px;
+            }
+
+            #modal-content {
+                width: 95%;
+                margin: 10px;
+            }
+        }
+    </style>
 </head>
 <body>
+    <header class="main-header">
+        <div class="header-container">
+            <a href="https://tools-by-rotem.github.io/webtools/" class="logo">
+                <img src="https://tools-by-rotem.github.io/webtools/site-logo.png" alt="רותם קנון לוגו">
+            </a>
+        </div>
+    </header>
+
+    <button id="accessibility-toggle" aria-label="פתח סרגל נגישות">⚙️</button>
+    
+    <div id="accessibility-toolbar" aria-hidden="true">
+        <h2>סרגל נגישות</h2>
+        <button id="increase-font">הגדל טקסט</button>
+        <button id="decrease-font">הקטן טקסט</button>
+        <button id="high-contrast">ניגודיות גבוהה</button>
+        <button id="grayscale">גווני אפור</button>
+        <button id="highlight-links">הדגש קישורים</button>
+        <button id="text-spacing">ריווח טקסט</button>
+        <button id="accessibility-statement">הצהרת נגישות</button>
+        <button id="reset-settings">איפוס הגדרות</button>
+    </div>
+
     <main class="main-content">
-        <div class="container">
-            <header class="page-header">
-                <h1>זהו עמוד ניסיונות</h1>
-                <p>לרוב לא תמצאו פה כלום, אם יהיה פה משהו זה יהיה לזמן ממש קצר ובסוף יעבור לאתר הראשי.</p>
+        <div class="content">
+            <h1>ברוכים הבאים לאתר שלנו</h1>
+            <p>כאן תוכלו למצוא מידע חשוב ותכנים מעניינים במגוון נושאים.</p>
+            <a href="https://drive.google.com/file/d/1ufcOmgi-qeN2HY6SjdZ-lcBW_9U_MwX3/view">הורדת התוסף לאתרי Wordpress</a>
+        </div>
+    </main>
+
+    <!-- Modal for Accessibility Statement -->
+    <div id="modal">
+        <div id="modal-content">
+            <h2>הצהרת נגישות</h2>
+            <p>
+                אנו מחויבים להעניק שירות שווה ונגיש לכל לקוחותינו. אנו פועלים בהתאם לחוק שוויון זכויות לאנשים עם מוגבלויות תשע"ג-2013 ולתקנותיו.
+                כחלק מאחריותנו החברתית, אנו משקיעים מאמצים מתמשכים לשיפור הנגישות באתר ובמשרד, כדי לאפשר לכל אדם ליהנות משירותינו באופן שווה.
+            </p>
+            <p>
+                אתר זה עומד בדרישות תקנות שוויון זכויות לאנשים עם מוגבלות (התאמות נגישות לשירות), התשע"ג-2013. התאמות הנגישות בוצעו עפ"י המלצות התקן
+                הישראלי (ת"י 5568) לנגישות תכנים באינטרנט ברמת AA ומסמך WCAG2.0 הבינלאומי.
+            </p>
+            <p>
+                מבנה סמנטי: האתר מספק מבנה סמנטי עבור טכנולוגיות מסייעות ותמיכה בדפוס השימוש המקובל להפעלה עם מקלדת בעזרת מקשי החיצים, Enter ו-Esc
+                ליציאה מתפריטים וחלונות.
+            </p>
+            <p>
+                התאמה לתצוגה בדפדפנים נפוצים: האתר מותאם לתצוגה בדפדפנים הנפוצים ולשימוש בטלפון הסלולרי.
+            </p>
+            <p>
+                תוכנת הקראת מסך: לשם קבלת חווית גלישה מיטבית עם תוכנת הקראת מסך, אנו ממליצים על שימוש בתוכנת NVDA העדכנית ביותר.
+            </p>
+            <p>
+                תוסף הנגישות: האתר נעזר בתוסף נגישות, המסייע בהנגשת קטעי טקסט, שינוי גודל אלמנטים, שינוי צבעים, הדגשת קישורים ועוד.
+            </p>
+            <p>
+                מסמכים וסרטוני וידאו: מסמכים או סרטוני וידאו שעלו לאתר לפני אוקטובר 2017 ייתכן שלא נגישים באופן מלא. במידה ונתקלתם במסמך כזה או
+                בסרטון, תוכלו לפנות למשרדנו ונדאג להנגיש לכם את המידע.
+            </p>
+            <p>
+                מסירת מידע בפורמט נגיש: המשרד מעמיד עבור לקוחותיו אפשרות לקבלת מידע בפורמטים נגישים ללא עלות, מיועדים עבור אנשים עם מוגבלות.
+                לפניות ומידע בנושא נגישות ניתן ליצור קשר עם נציגי המשרד.
+            </p>
+            <button id="close-modal">סגור</button>
+        </div>
+    </div>
+
+    <footer class="main-footer">
+        <div class="footer-container">
+            <div class="footer-section">
+                <h3>רשתות חברתיות</h3>
+                <div class="social-icons">
+                    <a href="https://www.linkedin.com/in/rotem-kanon" target="_blank">
+                        <img src="https://cdn-icons-png.flaticon.com/512/145/145807.png" alt="LinkedIn">
+                    </a>
+                    <a href="https://github.com/tools-by-rotem" target="_blank">
+                        <img src="https://cdn-icons-png.flaticon.com/512/2111/2111432.png" alt="GitHub">
+                    </a>
+                </div>
+            </div>
+            <div class="footer-section">
+                <h3>כמויות חיפושים</h3>
+                <ul>
+                    <li><a href="/webtools/google-search-volume">כמות חיפושים בגוגל</a></li>
+                    <li><a href="/webtools/spotify-search-volume">כמות חיפושים בספוטיפיי</a></li>
+                    <li><a href="/webtools/soundcloud-search-volume">כמות חיפושים בסאונדקלאוד </a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>תצוגה מקדימה</h3>
+                <ul>
+                    <li><a href="/webtools/google-serp-preview">תצוגה מקדימה לנראות בגוגל</a></li>
+                    <li><a href="/webtools/social-link-preview">תצוגה מקדימה לרשתות חברתיות</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>כמויות חיפושים</h3>
+                <ul>
+                    <li><a href="/webtools/google-search-volume">כמות חיפושים בגוגל</a></li>
+                    <li><a href="/webtools/spotify-search-volume">כמות חיפושים בספוטיפיי</a></li>
+                    <li><a href="/webtools/soundcloud-search-volume">כמות חיפושים בסאונדקלאוד </a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>תצוגה מקדימה</h3>
+                <ul>
+                    <li><a href="/webtools/google-serp-preview">תצוגה מקדימה לנראות בגוגל</a></li>
+                    <li><a href="/webtools/social-link-preview">תצוגה מקדימה לרשתות חברתיות</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>אופטימיזציה</h3>
+                <ul>
+                    <li><a href="/webtools/page-speed-test">בדיקת מהירות טעינה</a></li>
+                    <li><a href="/webtools/mobile-simulator">בדיקת תאימות למכשירים ניידים</a></li>
+                    <li><a href="/webtools/image-minify-converter">המרת פורמט וכיווץ משקל תמונה</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>יצירה ועיצוב</h3>
+                <ul>
+                    <li><a href="/webtools/background-remover">הסרת רקע מתמונה</a></li>
+                    <li><a href="/webtools/draw">ציור אינטראקטיבי</a></li>
+                    <li><a href="/webtools/image-color-identifier">זיהוי צבעי תמונה</a></li>
+                    <li><a href="/webtools/infographics">יצירת אינפוגרפיקות</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2025 כל הזכויות שמורות לרותם קנון</p>
+        </div>
+    </footer>
+
+    <script>
+        // הפעלת כפתור הסרגל
+        const toggleButton = document.getElementById('accessibility-toggle');
+        const toolbar = document.getElementById('accessibility-toolbar');
+        let isToolbarOpen = false;
+
+        toggleButton.addEventListener('click', () => {
+            isToolbarOpen = !isToolbarOpen;
+            toolbar.style.right = isToolbarOpen ? '0' : '-320px'; // הצגת או החבאת הסרגל
+            toolbar.setAttribute('aria-hidden', !isToolbarOpen);
+        });
+
+        // הגדרת גודל טקסט
+        let currentFontSize = 16;
+
+        document.getElementById('increase-font').addEventListener('click', () => {
+            if (currentFontSize < 32) { // עד 200%
+                currentFontSize += 2; // הגדלה של 2 פיקסלים
+                document.body.style.fontSize = currentFontSize + 'px';
+            }
+        });
+
+        document.getElementById('decrease-font').addEventListener('click', () => {
+            if (currentFontSize > 12) { // מינימום 12%
+                currentFontSize -= 2; // הקטנה של 2 פיקסלים
+                document.body.style.fontSize = currentFontSize + 'px';
+            }
+        });
+
+        // ניגודיות גבוהה
+        document.getElementById('high-contrast').addEventListener('click', () => {
+            document.body.classList.toggle('high-contrast');
+        });
+
+        // גווני אפור
+        document.getElementById('grayscale').addEventListener('click', () => {
+            document.body.classList.toggle('grayscale');
+        });
+
+        // הדגשת קישורים
+        document.getElementById('highlight-links').addEventListener('click', () => {
+            document.body.classList.toggle('highlight-links');
+        });
+
+        // ריווח טקסט
+        document.getElementById('text-spacing').addEventListener('click', () => {
+            document.body.classList.toggle('text-spacing');
+        });
+
+        // הצהרת נגישות
+        document.getElementById('accessibility-statement').addEventListener('click', () => {
+            document.getElementById('modal').style.display = 'flex'; // הצגת מודאל
+        });
+
+        // סגירת מודאל
+        document.getElementById('close-modal').addEventListener('click', () => {
+            document.getElementById('modal').style.display = 'none'; // החבאת מודאל
+        });
+
+        // איפוס הגדרות
+        document.getElementById('reset-settings').addEventListener('click', () => {
+            currentFontSize = 16; // אפס את גודל הטקסט לברירת מחדל
+            document.body.style.fontSize = currentFontSize + 'px';
+            document.body.classList.remove('high-contrast', 'grayscale', 'highlight-links', 'text-spacing');
+        });
+    </script>
 </body>
 </html>
