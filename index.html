@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-     <meta name="robots" content="noindex,nofollow">
     <title>תיקון ג'יבריש בהקלדה - מעברית לאנגלית ולהפך | Tools by Rotem</title>
     <meta name="description" content="כלי להיפוך טקסט שהוקלד בטעות בשפה הלא נכונה (עברית או אנגלית). הופך ג'יבריש לטקסט קריא בקלות ובמהירות. אידיאלי עבור משתמשים בעלי מקלדות דו לשוניות.">
     <link rel="icon" type="image/x-icon" href="/webtools/site-favicon.ico">
@@ -24,7 +23,6 @@
             flex-direction: column;
         }
 
-        /* Header Styles */
         .main-header {
             background-color: #2d3436;
             color: white;
@@ -49,7 +47,6 @@
             width: auto;
         }
 
-        /* Main Content Styles */
         .main-content {
             flex: 1;
             max-width: 1200px;
@@ -137,7 +134,6 @@
             height: 20px;
         }
 
-        /* Footer Styles */
         .main-footer {
             background-color: #2d3436;
             color: white;
@@ -209,7 +205,6 @@
             border-top: 1px solid #444;
         }
 
-        /* Responsive Design */
         @media (max-width: 768px) {
             .header-container {
                 padding: 0 1rem;
@@ -338,35 +333,47 @@
 
     <script>
         const engToHeb = {
-            "p": "פ", "o": "ם", "i": "ן", "u": "ו", "y": "ט",
-            "t": "א", "r": "ר", "e": "ק", 
-            ";": "ף", "l": "ך", "k": "ל", "j": "ח", "h": "י",
-            "g": "ע", "f": "כ", "d": "ג", "s": "ד", "a": "ש",
-            "m": "צ", "n": "מ", "b": "נ",
-            "v": "ה", "c": "ב", "x": "ס", "z": "ז", ",": "ת"
-        };
+    "p": "פ", "o": "ם", "i": "ן", "u": "ו", "y": "ט",
+    "t": "א", "r": "ר", "e": "ק", 
+    ";": "ף", "l": "ך", "k": "ל", "j": "ח", "h": "י",
+    "g": "ע", "f": "כ", "d": "ג", "s": "ד", "a": "ש",
+    "m": "צ", "n": "מ", "b": "נ",
+    "v": "ה", "c": "ב", "x": "ס", "z": "ז", ",": "ת",
+    
+    "P": "פ", "O": "ם", "I": "ן", "U": "ו", "Y": "ט",
+    "T": "א", "R": "ר", "E": "ק", 
+    "L": "ך", "K": "ל", "J": "ח", "H": "י",
+    "G": "ע", "F": "כ", "D": "ג", "S": "ד", "A": "ש",
+    "M": "צ", "N": "מ", "B": "נ",
+    "V": "ה", "C": "ב", "X": "ס", "Z": "ז"
+};
 
-        const hebToEng = Object.fromEntries(Object.entries(engToHeb).map(([key, value]) => [value, key]));
+const hebToEng = {};
+for (const [eng, heb] of Object.entries(engToHeb)) {
+    if (!hebToEng[heb] || eng.toLowerCase() === eng) {
+        hebToEng[heb] = eng.toLowerCase();
+    }
+}
 
-        function convertToHebrew() {
-            const input = document.getElementById("inputText").value;
-            const output = input.split('').map(char => engToHeb[char] || char).join('');
-            document.getElementById("outputText").value = output;
-        }
+function convertToHebrew() {
+    const input = document.getElementById("inputText").value;
+    const output = input.split('').map(char => engToHeb[char] || char).join('');
+    document.getElementById("outputText").value = output;
+}
 
-        function convertToEnglish() {
-            const input = document.getElementById("inputText").value;
-            const output = input.split('').map(char => hebToEng[char] || char).join('');
-            document.getElementById("outputText").value = output;
-        }
+function convertToEnglish() {
+    const input = document.getElementById("inputText").value;
+    const output = input.split('').map(char => hebToEng[char] || char).join('');
+    document.getElementById("outputText").value = output;
+}
 
-        function copyToClipboard() {
-            const outputField = document.getElementById("outputText");
-            outputField.select();
-            outputField.setSelectionRange(0, 99999); // תומך במכשירים ניידים
-            document.execCommand("copy");
-            alert("הטקסט הועתק ללוח!");
-        }
+function copyToClipboard() {
+    const outputField = document.getElementById("outputText");
+    outputField.select();
+    outputField.setSelectionRange(0, 99999);
+    document.execCommand("copy");
+    alert("הטקסט הועתק ללוח!");
+}
     </script>
 </body>
 </html>
