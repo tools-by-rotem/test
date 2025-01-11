@@ -63,31 +63,7 @@
             color: #2d3436;
         }
 
-        /* Canvas and Tools Styles */
-        #toolbar {
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-            justify-content: space-between;
-            padding: 10px;
-            background-color: #ffffff;
-            border-radius: 12px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
-            width: 100%;
-            max-width: 800px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        #toolbar input, #toolbar select, #toolbar button {
-            margin: 0 5px;
-            padding: 10px;
-            border-radius: 8px;
-            border: 1px solid #ddd;
-            background-color: #f1f1f1;
-        }
-
+        /* Canvas Container */
         #canvas-container {
             display: flex;
             justify-content: center;
@@ -99,6 +75,102 @@
             width: 100%;
             max-width: 800px;
             margin: 0 auto;
+        }
+
+        canvas {
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* Toolbar Styles */
+        #toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 15px;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin: 0 auto 20px;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .toolbar-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        #toolbar input[type="range"] {
+            width: 100px;
+            margin: 0;
+        }
+
+        #toolbar select {
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            background-color: #f1f1f1;
+            margin: 0;
+        }
+
+        .color-picker-container {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            position: relative;
+        }
+
+        #colorDisplay {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 2px solid #ddd;
+            cursor: pointer;
+            background-color: #000000;
+        }
+
+        #colorPicker {
+            opacity: 0;
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+
+        .button-group button {
+            width: 40px;
+            height: 40px;
+            padding: 8px;
+            border: none;
+            border-radius: 8px;
+            background-color: #f1f1f1;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.3s ease;
+        }
+
+        .button-group button:hover {
+            background-color: #e0e0e0;
+        }
+
+        .button-group button img {
+            width: 24px;
+            height: 24px;
         }
 
         /* Footer Styles */
@@ -173,9 +245,6 @@
             border-top: 1px solid #444;
         }
 
-        /* Existing canvas-related styles */
-        [Previous canvas and drawing tool styles...]
-
         /* Responsive Design */
         @media (max-width: 768px) {
             .header-container {
@@ -183,13 +252,30 @@
             }
 
             #toolbar {
-                flex-direction: column;
-                align-items: stretch;
+                padding: 10px;
+                gap: 15px;
             }
 
-            #toolbar input, #toolbar select, #toolbar button {
-                margin: 5px 0;
+            .toolbar-group {
                 width: 100%;
+                justify-content: center;
+            }
+
+            #toolbar input[type="range"] {
+                width: 100%;
+                max-width: 200px;
+            }
+
+            .button-group {
+                width: 100%;
+                justify-content: center;
+                gap: 10px;
+            }
+
+            .button-group button {
+                width: calc(50% - 5px);
+                max-width: 120px;
+                height: 40px;
             }
 
             .footer-container {
@@ -199,13 +285,6 @@
 
             .footer-section {
                 align-items: center;
-            }
-
-            .button-group {
-                display: grid;
-                grid-template-columns: repeat(2, 1fr);
-                gap: 10px;
-                width: 100%;
             }
         }
     </style>
@@ -223,36 +302,39 @@
     <main class="main-content">
         <h1 class="page-title">צייר אונליין - כלי אינטרקטיבי לציור</h1>
         
-        <!-- Original toolbar -->
         <div id="toolbar">
-            <label for="colorPicker">
-            <div id="colorDisplay">
-                <input type="color" id="colorPicker" value="#000000">
+            <div class="toolbar-group">
+                <div class="color-picker-container">
+                    <div id="colorDisplay"></div>
+                    <input type="color" id="colorPicker" value="#000000">
+                </div>
+                <input type="range" id="brushSize" min="1" max="20" value="5" title="גודל המברשת">
             </div>
-        </label>
-        <input type="range" id="brushSize" min="1" max="20" value="5">
-        <select id="brushShape">
-            <option value="round">מעוגל</option>
-            <option value="square">מרובע</option>
-        </select>
-        <input type="range" id="opacity" min="0.1" max="1" step="0.1" value="1">
-        <div class="button-group">
-            <button id="clearCanvas">
-                <img src="https://cdn-icons-png.flaticon.com/512/9742/9742093.png" alt="Clear" width="24" height="24">
-            </button>
-            <button id="undo">
-                <img src="https://cdn-icons-png.flaticon.com/512/2349/2349854.png" alt="Undo" width="24" height="24">
-            </button>
-            <button id="redo">
-                <img src="https://cdn-icons-png.flaticon.com/512/2349/2349829.png" alt="Redo" width="24" height="24">
-            </button>
-            <button id="save">
-                <img src="https://cdn-icons-png.flaticon.com/512/2874/2874091.png" alt="Save" width="24" height="24">
-            </button>
-        </div>
+            
+            <div class="toolbar-group">
+                <select id="brushShape">
+                    <option value="round">מעוגל</option>
+                    <option value="square">מרובע</option>
+                </select>
+                <input type="range" id="opacity" min="0.1" max="1" step="0.1" value="1" title="שקיפות">
+            </div>
+            
+            <div class="button-group">
+                <button id="clearCanvas" title="נקה הכל">
+                    <img src="https://cdn-icons-png.flaticon.com/512/9742/9742093.png" alt="Clear">
+                </button>
+                <button id="undo" title="בטל">
+                    <img src="https://cdn-icons-png.flaticon.com/512/2349/2349854.png" alt="Undo">
+                </button>
+                <button id="redo" title="בצע שוב">
+                    <img src="https://cdn-icons-png.flaticon.com/512/2349/2349829.png" alt="Redo">
+                </button>
+                <button id="save" title="שמור">
+                    <img src="https://cdn-icons-png.flaticon.com/512/2874/2874091.png" alt="Save">
+                </button>
+            </div>
         </div>
 
-        <!-- Original canvas container -->
         <div id="canvas-container">
             <canvas id="canvas"></canvas>
         </div>
