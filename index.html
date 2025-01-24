@@ -379,6 +379,52 @@
       padding-top: 1rem;
       border-top: 1px solid #444;
     }
+    @media (max-width: 768px) {
+    .container {
+        width: 95%;
+        max-width: 100%;
+        margin: 10px auto;
+        padding: 10px;
+        box-sizing: border-box;
+    }
+
+    .header-container, .footer-container {
+        padding: 0 10px;
+    }
+
+    .tabs {
+        flex-wrap: wrap;
+    }
+
+    .tab {
+        flex-grow: 1;
+        text-align: center;
+        margin: 5px;
+    }
+
+    .preview-header, .preview-footer, .preview-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .preview-actions button {
+        margin: 5px 0;
+    }
+
+    .footer-container {
+        grid-template-columns: 1fr;
+    }
+
+    .logo img {
+        max-width: 100%;
+        height: auto;
+    }
+
+    input {
+        width: 100%;
+        box-sizing: border-box;
+    }
+}
   </style>
   <script src="https://cdn.enable.co.il/licenses/enable-L34385vlixga9kjh-1224-66195/init.js"></script>
 </head>
