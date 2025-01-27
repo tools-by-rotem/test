@@ -94,23 +94,20 @@
         }
 
         .checkbox-wrapper {
-    display: flex;
-    flex-direction: row-reverse;
-    justify-content: flex-start;
-    margin: 5px 0;
-}
-
-.checkbox-wrapper label {
-    margin: 0;
-    display: flex;
-    flex-direction: row-reverse; /* שינוי זה יהפוך את כיוון הלייבל והצ'קבוקס */
-    align-items: center;
-}
-
-.checkbox-wrapper input[type="checkbox"] {
-    margin: 0 0 0 5px; /* שינוי המרווח לצד שמאל במקום ימין */
-}
-
+            display: right;
+            justify-content: flex-end;
+            margin: 5px 0;
+        }
+        .checkbox-wrapper label {
+            margin: 0;
+            display: right;
+            align-items: center;
+            text-align: right;
+        }
+        .checkbox-wrapper input[type="checkbox"] {
+            margin: 0 5px 0 0;
+            direction: rtl;
+            
         button {
             padding: 10px 20px;
             font-size: 1em;
