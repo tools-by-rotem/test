@@ -1,12 +1,11 @@
 <!DOCTYPE html>
-<html dir="rtl" lang="he">
+<html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="robots" content="noindex,nofollow">
-    <title>הסרת רקע מתמונה - הפרדת עצם מרכזי מתמונה | Tools by Rotem</title>
-    <meta name="description" content="הסרת רקע מתמונה בקלות - כלי מתקדם להפרדת עצם מרכזי מרקע תמונה, לשימוש אישי או מקצועי. אידיאלי לעריכת תמונות, עיצוב גרפי, חנויות אונליין ועוד.">
-    <link rel="canonical" href="https://tools-by-rotem.github.io/webtools/background-remover" />
+    <title>צייר אונליין - כלי אינטרקטיבי לציור בדפדפן | Tools by Rotem</title>
+    <meta name="description" content="צייר אונליין - כלי אינטראקטיבי לציור ישירות בדפדפן. אפשרויות ציור מתקדמות, ממשק ידידותי למשתמש, צבעים מגוונים ויצירתיות ללא גבולות. התחילו לצייר עכשיו >>>">
+    <link rel="canonical" href="https://tools-by-rotem.github.io/webtools/draw" />
     <link rel="icon" type="image/x-icon" href="/webtools/site-favicon.ico">
     <style>
         * {
@@ -17,14 +16,12 @@
         }
 
         body {
-            font-family: 'Roboto', sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
-            min-height: 100vh;
-            direction: rtl;
-            background: #f5f5f5;
-            overflow-x: hidden;
-            width: 100%;
         }
 
         /* Header Styles */
@@ -55,76 +52,127 @@
         /* Main Content Styles */
         .main-content {
             flex: 1;
-            width: 100%;
-            max-width: 100%;
-            padding: 30px 20px;
+            margin-top: 2rem;
+            padding: 0 20px;
         }
 
-        .container {
-            background-color: white;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        .page-title {
             text-align: center;
-            max-width: 400px;
-            width: 100%;
-            margin: 30px auto;
+            margin-bottom: 2rem;
+            color: #2d3436;
         }
 
-        .article-container {
-            max-width: 70%;
-            margin: 30px auto;
-            padding: 15px;
-            background-color: #f9f9f9;
+        /* Canvas Container */
+        #canvas-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: white;
+            padding: 10px;
             border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
         }
 
-        /* Original Tool Styles */
-        h1 { font-size: 24px; margin-bottom: 20px; color: #333; }
-        input[type="file"] { display: none; }
-        .file-label {
-            display: inline-block;
-            padding: 10px 20px;
-            background-color: #007bff;
-            color: white;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-        .file-label:hover { background-color: #0056b3; }
-        #removeBgBtn {
-            display: block;
-            margin: 20px auto;
-            padding: 10px 20px;
-            background-color: #28a745;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-        #removeBgBtn:hover { background-color: #218838; }
-        #outputImage, #previewImage {
-            display: none;
-            margin: 20px auto;
-            max-width: 100%;
+        canvas {
             border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            max-width: 100%;
+            height: auto;
         }
-        #downloadBtn, #resetBtn {
-            display: none;
-            margin: 20px auto;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
+
+        /* Toolbar Styles */
+        #toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 15px;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin: 0 auto 20px;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .toolbar-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        #toolbar input[type="range"] {
+            width: 100px;
+            margin: 0;
+        }
+
+        #toolbar select {
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            background-color: #f1f1f1;
+            margin: 0;
+        }
+
+        .color-picker-container {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            position: relative;
+        }
+
+        #colorDisplay {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 2px solid #ddd;
             cursor: pointer;
+            background-color: #000000;
+        }
+
+        #colorPicker {
+            opacity: 0;
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+
+        .button-group button {
+            width: 40px;
+            height: 40px;
+            padding: 8px;
+            border: none;
+            border-radius: 8px;
+            background-color: #f1f1f1;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             transition: background-color 0.3s ease;
         }
-        #downloadBtn { background-color: #ffc107; color: white; }
-        #downloadBtn:hover { background-color: #e0a800; }
-        #resetBtn { background-color: #dc3545; color: white; }
-        #resetBtn:hover { background-color: #c82333; }
 
+        .button-group button:hover {
+            background-color: #e0e0e0;
+        }
+
+        .button-group button img {
+            width: 24px;
+            height: 24px;
+        }
+
+        /* Footer Styles */
         .main-footer {
             background-color: #2d3436;
             color: white;
@@ -148,10 +196,9 @@
             align-items: flex-start;
         }
 
-        .footer-section p {
+        .footer-section h3 {
             color: white;
             margin-bottom: 1rem;
-	font-weight: bold;
         }
 
         .footer-section ul {
@@ -183,6 +230,7 @@
             width: 24px;
             height: 24px;
             transition: opacity 0.3s ease;
+            margin-right: -4px;
         }
 
         .social-icons a:hover img {
@@ -196,18 +244,75 @@
             border-top: 1px solid #444;
         }
 
+        .article-content {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .article-content h2 {
+            color: #2d3436;
+            margin: 1.5rem 0 1rem;
+        }
+
+        .article-content ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 1rem 0;
+        }
+
+        .article-content li {
+            margin: 0.5rem 0;
+            padding-right: 1.5rem;
+            position: relative;
+        }
+
+        .article-content li::before {
+            content: "•";
+            position: absolute;
+            right: 0;
+            color: #0984e3;
+        }
+
+        .article-content p {
+            margin: 1rem 0;
+            line-height: 1.8;
+        }
+
+        /* Responsive Design */
         @media (max-width: 768px) {
             .header-container {
                 padding: 0 1rem;
             }
 
-            .article-container {
-                max-width: 90%;
-                margin: 20px auto;
+            #toolbar {
+                padding: 10px;
+                gap: 15px;
             }
 
-            .container {
-                margin: 20px auto;
+            .toolbar-group {
+                width: 100%;
+                justify-content: center;
+            }
+
+            #toolbar input[type="range"] {
+                width: 100%;
+                max-width: 200px;
+            }
+
+            .button-group {
+                width: 100%;
+                justify-content: center;
+                gap: 10px;
+            }
+
+            .button-group button {
+                width: calc(50% - 5px);
+                max-width: 120px;
+                height: 40px;
             }
 
             .footer-container {
@@ -218,13 +323,9 @@
             .footer-section {
                 align-items: center;
             }
-
-            .logo img {
-                height: 50px;
-            }
         }
     </style>
-     <script src="https://cdn.enable.co.il/licenses/enable-L34385vlixga9kjh-1224-66195/init.js"></script>
+    <script src="https://cdn.enable.co.il/licenses/enable-L34385vlixga9kjh-1224-66195/init.js"></script>
 </head>
 <body>
     <header class="main-header">
@@ -236,98 +337,79 @@
     </header>
 
     <main class="main-content">
-        <div class="container">
-            <h1>הסרת רקע מתמונה</h1>
-            <label class="file-label" for="inputFile">בחרו תמונה</label>
-            <input type="file" id="inputFile" accept="image/*">
-            <img id="previewImage" alt="תצוגה מקדימה" />
-            <button id="removeBgBtn">הסרת רקע</button>
-            <img id="outputImage" alt="כאן תופיע התוצאה" />
-            <button id="downloadBtn">הורדת תמונה ללא רקע</button>
-            <button id="resetBtn">הסרת רקע מתמונה נוספת</button>
-            <p id="loading" style="display: none;">מעבד את התמונה...</p>
-        </div>
-
-        <div class="article-container">
-            <h2><strong>איך להשתמש בכלי להסרת רקע מתמונה?</strong></h2>
-            <p>&nbsp;</p>
-            <h3><strong>1. העלו את התמונה</strong></h3>
-            <p><span style="font-weight: 400;">כדי להתחיל, פשוט לחצו על כפתור "בחרו תמונה" והעלו תמונה מהמחשב שלכם או מהטלפון.</span></p>
-            <p>&nbsp;</p>
-            <h3><strong>2. תנו לכלי לעבוד</strong></h3>
-            <p><span style="font-weight: 400;">לאחר שהעליתם את התמונה, לחצו על כפתור "הסרת רקע" והכלי יתחיל בתהליך הסרת הרקע מהתמונה. תוך מספר שניות בלבד תתקבל התוצאה.</span></p>
-            <p>&nbsp;</p>
-            <h3><strong>3. הורידו את התמונה ללא הרקע</strong></h3>
-            <p><span style="font-weight: 400;">בסיום התהליך, תוכלו להוריד את התמונה ולשלב אותה בכל פרויקט או עיצוב שתבחרו.</span></p>
-            <p>&nbsp;</p>
-            <h2><strong>איך הכלי להסרת רקע מתמונה עובד?</strong></h2>
-            <p><span style="font-weight: 400;">אם אתם מחפשים דרך פשוטה ומהירה להסיר רקע מתמונה, הגעתם למקום הנכון. הכלי שלי להסרת רקע מתמונה מציע פתרון קליל ומדויק להפליא שמתאים גם למתחילים וגם למקצוענים. כל שעליכם לעשות הוא להעלות את התמונה, ותוך שניות ספורות תקבלו תוצאה מרשימה עם רקע שקוף לחלוטין.</span></p>
-            <p>&nbsp;</p>
-            <p><span style="font-weight: 400;">הכלי עובד בטכנולוגיה מתקדמת המבוססת על למידת מכונה, שמאפשרת לזהות את האובייקטים בתמונה ולהפריד אותם מהרקע באופן מדויק. בין אם מדובר בתמונה של אדם, חפץ או מוצר שיווקי, הכלי מבצע את העבודה בצורה מושלמת תוך שמירה על פרטים חשובים כמו קצוות השיער או קווי המתאר של האובייקט.</span></p>
-            <p>&nbsp;</p>
-            <h2><strong>יתרונות הכלי להסרת רקע מתמונה</strong></h2>
-            <p>&nbsp;</p>
-            <h3><strong>חינמי לחלוטין</strong></h3>
-            <p><span style="font-weight: 400;">הכלי זמין לשימוש בחינם, כך שתוכלו להסיר רקעים מתמונות ללא צורך ברכישת תוכנה יקרה או הרשמה למנוי חודשי. זהו פתרון מושלם עבור אנשים פרטיים, יזמים קטנים ומעצבים גרפיים.</span></p>
-            <p>&nbsp;</p>
-            <h3><strong>קל לשימוש</strong></h3>
-            <p><span style="font-weight: 400;">אין צורך בידע מוקדם בעריכת תמונות. הממשק הפשוט והאינטואיטיבי הופך את התהליך למהיר ונוח. תוך שלושה שלבים פשוטים בלבד תוכלו לקבל את התמונה שלכם ללא הרקע.</span></p>
-            <p>&nbsp;</p>
-            <h3><strong>תמיכה במספר פורמטי תמונה</strong></h3>
-            <p><span style="font-weight: 400;">הכלי תומך בפורמטים שונים, כך שתוכלו להעלות תמונות בפורמטים הפופולריים ביותר כמו JPEG, PNG, WebP ועוד. התמונה ניתנת להורדה בפורמט PNG, במידה ותרצו להמיר את פורמט התמונה לפורמט אחר, תוכלו להשתמש </span><a href="https://tools-by-rotem.github.io/webtools/image-minify-converter"><strong>בכלי להמרת פורמט וכיווץ משקל תמונה</strong></a><span style="font-weight: 400;">.</span></p>
-            <p>&nbsp;</p>
-            <h3><strong>תוצאות איכותיות ומדויקות</strong></h3>
-            <p><span style="font-weight: 400;">באמצעות טכנולוגיה מתקדמת, הכלי שומר על רמת דיוק גבוהה במיוחד, כולל פרטים עדינים כמו שיער, צללים וקווי מתאר קטנים. כך תוכלו להיות בטוחים שהתוצאה הסופית תיראה מקצועית.</span></p>
-            <p>&nbsp;</p>
-            <h3><strong>מתאים לכל מטרה</strong></h3>
-            <p><span style="font-weight: 400;">בין אם אתם מעצבים גרפיים שזקוקים לתמונות למטרות שיווקיות ובין אם אתם סתם רוצים ליצור תמונות יצירתיות, הכלי שלי מתאים לכולם. הוא אידיאלי עבור עיצוב פוסטים ברשתות החברתיות, יצירת לוגואים, הכנת מצגות ועוד.</span></p>
-            <p>&nbsp;</p>
-            <h2><strong>למה לבחור דווקא בכלי הזה?</strong></h2>
-            <p><span style="font-weight: 400;">ישנם כלים רבים להסרת רקע מתמונה, אך הכלי שלי מציע שילוב מנצח של פשטות, איכות ותוצאה מהירה. הכלי מותאם בדיוק לצרכים שלכם, בין אם מדובר בפרויקטים מקצועיים או בצרכים אישיים. בנוסף, הוא זמין לשימוש מכל מכשיר &ndash; מחשב, טאבלט או טלפון נייד.</span></p>
-            <p>&nbsp;</p>
-            <h2><strong>שימושים פופולריים בכלי</strong></h2>
-            <p>&nbsp;</p>
-            <h3><strong>עיצוב פוסטים לרשתות חברתיות</strong></h3>
-            <p><span style="font-weight: 400;">צרו תמונות עם רקע שקוף שתוכלו לשלב בקלות בפוסטים שלכם. הכלי מאפשר להבליט את האובייקטים החשובים בתמונה ולשפר את האסתטיקה הכללית.</span></p>
-            <p>&nbsp;</p>
-            <h3><strong>יצירת חומרים שיווקיים</strong></h3>
-            <p><span style="font-weight: 400;">בין אם אתם עובדים על פלייר, באנר או פרסומת דיגיטלית, הכלי יאפשר לכם להסיר רקעים בקלות ולהתמקד במוצר או בשירות שאתם מציעים.</span></p>
-            <p>&nbsp;</p>
-            <h3><strong>עריכת תמונות אישיות</strong></h3>
-            <p><span style="font-weight: 400;">רוצים להסיר את הרקע מהתמונות שלכם לצורך יצירת אלבומים, הדפסות מיוחדות או מתנות מקוריות? הכלי שלי הוא הבחירה המושלמת לכך.</span></p>
-            <p>&nbsp;</p>
-            <h2><strong>טיפים לקבלת תוצאה מיטבית</strong></h2>
-            <p>&nbsp;</p>
-            <h3><strong>שמרו על איכות התמונה המקורית</strong></h3>
-            <p><span style="font-weight: 400;">כדי לקבל תוצאות טובות יותר, השתמשו בתמונות ברזולוציה גבוהה.</span></p>
-            <p>&nbsp;</p>
-            <h3><strong>התאימו את הרקע החדש לצרכים שלכם</strong></h3>
-            <p><span style="font-weight: 400;">לאחר ההסרה, תוכלו להוסיף רקע חדש מותאם אישית בהתאם לפרויקט שלכם.</span></p>
-            <p>&nbsp;</p>
-            <h3><strong>נסו תמונות שונות</strong></h3>
-            <p><span style="font-weight: 400;">הכלי מתאים לסוגי תמונות מגוונים, אז אל תהססו להתנסות עם תמונות שונות כדי לבדוק את הביצועים.</span></p>
-            <p>&nbsp;</p>
-            <h2><strong>לסיכום</strong></h2>
-            <p><span style="font-weight: 400;">אם אתם מחפשים כלי להסרת רקע מתמונה שהוא גם חינמי, גם קל לשימוש וגם מספק תוצאות איכותיות, אין צורך להמשיך לחפש. הכלי שלי מספק את כל מה שאתם צריכים כדי להסיר רקעים מתמונות בצורה מקצועית וללא מאמץ.</span></p>
-            <p>&nbsp;</p>
-            <p><span style="font-weight: 400;">למה אתם מחכים? השתמשו בכלי להסרת רקע מתמונה עוד היום ותיהנו מתוצאות יוצאות דופן!</span><span style="font-weight: 400;"><br /></span><span style="font-weight: 400;">מעוניינים לראות מה עוד יש לי להציע? עברו אל </span><a href="https://tools-by-rotem.github.io/webtools/"><strong>ספריית הכלים</strong></a><span style="font-weight: 400;"> ובחנו כלים נוספים.</span></p>
+        <h1 class="page-title">צייר אונליין - כלי אינטרקטיבי לציור</h1>
+        
+        <div id="toolbar">
+            <div class="toolbar-group">
+                <div class="color-picker-container">
+                    <div id="colorDisplay"></div>
+                    <input type="color" id="colorPicker" value="#000000">
+                </div>
+                <input type="range" id="brushSize" min="1" max="20" value="5" title="גודל המברשת">
+            </div>
+            
+            <div class="toolbar-group">
+                <select id="brushShape">
+                    <option value="round">מעוגל</option>
+                    <option value="square">מרובע</option>
+                </select>
+                <input type="range" id="opacity" min="0.1" max="1" step="0.1" value="1" title="שקיפות">
+            </div>
+            
+            <div class="button-group">
+                <button id="clearCanvas" title="נקה הכל">
+                    <img src="https://cdn-icons-png.flaticon.com/512/9742/9742093.png" alt="Clear">
+                </button>
+                <button id="undo" title="בטל">
+                    <img src="https://cdn-icons-png.flaticon.com/512/2349/2349854.png" alt="Undo">
+                </button>
+                <button id="redo" title="בצע שוב">
+                    <img src="https://cdn-icons-png.flaticon.com/512/2349/2349829.png" alt="Redo">
+                </button>
+                <button id="save" title="שמור">
+                    <img src="https://cdn-icons-png.flaticon.com/512/2874/2874091.png" alt="Save">
+                </button>
             </div>
         </div>
+
+        <div id="canvas-container">
+            <canvas id="canvas"></canvas>
+        </div>
+        <article class="article-content">
+            <h2>איך להשתמש בכלי ציור בדפדפן</h2>
+            <p>צייר אונליין הוא כלי פשוט ומהנה לציור בצורה חופשית ופשוטה. כדי להתחיל:</p>
+            <ul>
+            <li><strong>התחילו ליצור</strong>: לחצו וגררו את העכבר או השתמשו באצבע אם אתם עובד עם מסך מגע.</li>
+                <li><strong>התאימו את הציור</strong>: שנו צבעים, עובי קווים או בחרו בכלים נוספים לפי הצורך.</li>
+                <li><strong>שמרו או שתפו</strong>: כשהציור מוכן, תוכלו לשמור אותו במכשיר שלכם או לשתף אותו עם אחרים.</li>
+            </ul>
+
+            <h2>למה לצייר בדפדפן?</h2>
+            <p>ציור בדפדפן הוא חוויה נגישה, קלה ומותאמת לכולם – מציירים מתחילים ועד מקצוענים. הכלי לא דורש התקנה, כך שתוכלו להתחיל לצייר תוך שניות, מכל מקום שבו יש חיבור לאינטרנט. בנוסף, הכלי כוללות ממשק ידידותי למשתמש, כך שגם אם זו הפעם הראשונה שלכם – תרגישו בנוח.</p>
+
+            <h2>למי מתאים ציור אונליין?</h2>
+            <p>כלי הציור בדפדפן מתאים למגוון רחב של אנשים ומצבים. ילדים יכולים ליהנות מציור חופשי ומהנה, הורים ומורים יכולים להשתמש בו למטרות לימודיות, ואנשי מקצוע כמו מעצבים גרפיים יכולים להשתמש בו ליצירת סקיצות מהירות. אפילו בפגישות עבודה, אפשר להיעזר בו כדי להמחיש רעיונות בצורה ויזואלית וברורה.</p>
+
+            <h2>איזה אפשרויות עיצוביות תמצאו בכלי צייר אונליין?</h2> <p>כלי הציור אונליין מציע מגוון אפשרויות, כמו בחירת צבעים, שינוי עובי הקו, מחיקת טעויות בקלות ושמירת התוצאה הסופית. במידה ותרצו לשמור את הציור בפורמט שונה, תוכלו להשתמש <a href="https://tools-by-rotem.github.io/webtools/image-minify-converter"><b>בכלי להמרת פורמט התמונה</b></a>.</p>
+
+            <h2>למה כדאי לנסות ציור אונליין?</h2>
+            <p>ציור בדפדפן מאפשר לכם להתחבר לצד היצירתי שלכם בקלות ובמהירות. בין אם אתם רוצים לצייר להנאה, להפיק סקיצה מקצועית, או להעביר מסר בצורה ויזואלית – הכלי הזה זמין בכל רגע. תנו לדמיון שלכם לפרוץ גבולות והתחילו ליצור כבר עכשיו!</p>
+        </article>
     </main>
 
     <footer class="main-footer">
         <div class="footer-container">
-          <div class="footer-section">
-            <p>רשתות חברתיות</p>
-             <div class="social-icons">
-             <a href="https://www.linkedin.com/in/rotem-kanon" target="_blank">
-               <img src="https://cdn-icons-png.flaticon.com/512/145/145807.png" alt="LinkedIn">
-             </a>
-             <a href="https://github.com/tools-by-rotem" target="_blank">
-               <img src="https://cdn-icons-png.flaticon.com/512/2111/2111432.png" alt="GitHub">
-             </a>
-           </div>
-        </div>
+            <div class="footer-section">
+                <p>רשתות חברתיות</p>
+                <div class="social-icons">
+                    <a href="https://www.linkedin.com/in/rotem-kanon" target="_blank">
+                        <img src="https://cdn-icons-png.flaticon.com/512/145/145807.png" alt="LinkedIn">
+                    </a>
+                    <a href="https://github.com/tools-by-rotem" target="_blank">
+                        <img src="https://cdn-icons-png.flaticon.com/512/2111/2111432.png" alt="GitHub">
+                    </a>
+                </div>
+            </div>
             <div class="footer-section">
                 <p>כמויות חיפושים</p>
                 <ul>
@@ -371,86 +453,202 @@
                     <li><a href="https://tools-by-rotem.github.io/webtools/resume-scanner">התאמת קורות חיים לסורקים אוטומטיים</a></li>
                 </ul>
             </div>
-            
         </div>
         <div class="footer-bottom">
             <p>© 2025 כל הזכויות שמורות לרותם קנון</p>
         </div>
     </footer>
 
-    <script>
-        const inputFile = document.getElementById("inputFile");
-        const previewImage = document.getElementById("previewImage");
-        const outputImage = document.getElementById("outputImage");
-        const downloadBtn = document.getElementById("downloadBtn");
-        const resetBtn = document.getElementById("resetBtn");
+        <script>
+        function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
 
-        inputFile.addEventListener("change", function() {
-            const file = inputFile.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    previewImage.src = e.target.result;
-                    previewImage.style.display = "block";
-                };
-                reader.readAsDataURL(file);
-            }
-        });
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const colorPicker = document.getElementById('colorPicker');
+const colorDisplay = document.getElementById('colorDisplay');
+const brushSize = document.getElementById('brushSize');
+const brushShape = document.getElementById('brushShape');
+const opacity = document.getElementById('opacity');
+const clearCanvasBtn = document.getElementById('clearCanvas');
+const undoBtn = document.getElementById('undo');
+const redoBtn = document.getElementById('redo');
+const saveBtn = document.getElementById('save');
 
-        document.getElementById("removeBgBtn").addEventListener("click", async function() {
-            const file = inputFile.files[0];
-            if (!file) {
-                alert("אנא בחרו תמונה.");
-                return;
-            }
+let painting = false;
+let undoStack = [];
+let redoStack = [];
 
-            document.getElementById("loading").style.display = "block";
-            outputImage.style.display = "none";
-            downloadBtn.style.display = "none";
-            resetBtn.style.display = "none";
+function resizeCanvas() {
+    const containerWidth = document.getElementById('canvas-container').clientWidth;
+    const containerHeight = 300; // גובה קבוע
+    
+    // שמירת התוכן הנוכחי
+    const tempCanvas = document.createElement('canvas');
+    const tempCtx = tempCanvas.getContext('2d');
+    tempCanvas.width = canvas.width;
+    tempCanvas.height = canvas.height;
+    tempCtx.drawImage(canvas, 0, 0);
+    
+    // שינוי גודל הקנבס
+    canvas.width = containerWidth - 20;
+    canvas.height = containerHeight;
+    
+    // שחזור התוכן
+    ctx.drawImage(tempCanvas, 0, 0);
+}
 
-            const formData = new FormData();
-            formData.append("image_file", file);
+// אתחול ראשוני והגדרת האזנה לשינוי גודל עם debounce
+resizeCanvas();
+const debouncedResize = debounce(resizeCanvas, 250);
+window.addEventListener('resize', debouncedResize);
 
-            const apiKey = "L8ybRK2f4daKp17Pfo7eSQzr";
-            const response = await fetch("https://api.remove.bg/v1.0/removebg", {
-                method: "POST",
-                headers: {
-                    "X-Api-Key": apiKey
-                },
-                body: formData
-            });
+function getMousePos(event) {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    return {
+        x: (event.clientX - rect.left) * scaleX,
+        y: (event.clientY - rect.top) * scaleY
+    };
+}
 
-            document.getElementById("loading").style.display = "none";
+function toggleColorPicker(e) {
+    e.stopPropagation();
+    if (window.innerWidth <= 768) {
+        colorPicker.click();
+    } else {
+        colorDisplay.classList.toggle('active');
+    }
+}
 
-            if (!response.ok) {
-                alert("הסרת הרקע נכשלה. נסו שנית.");
-                return;
-            }
+colorDisplay.addEventListener('click', toggleColorPicker);
 
-            const blob = await response.blob();
-            const imgUrl = URL.createObjectURL(blob);
-            outputImage.src = imgUrl;
-            outputImage.style.display = "block";
-            downloadBtn.style.display = "block";
-            resetBtn.style.display = "block";
+colorPicker.addEventListener('input', function() {
+    colorDisplay.style.backgroundColor = colorPicker.value;
+});
 
-            downloadBtn.addEventListener("click", function() {
-                const a = document.createElement("a");
-                a.href = imgUrl;
-                a.download = "image-removed-bg.png";
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-            });
-        });
+colorPicker.addEventListener('change', function() {
+    colorDisplay.style.backgroundColor = colorPicker.value;
+    if (window.innerWidth > 768) {
+        colorDisplay.classList.remove('active');
+    }
+});
 
-        resetBtn.addEventListener("click", function() {
-            previewImage.style.display = "none";
-            outputImage.style.display = "none";
-            downloadBtn.style.display = "none";
-            inputFile.value = "";
-            resetBtn.style.display = "none";
+document.addEventListener('click', function(e) {
+    if (e.target !== colorDisplay && e.target !== colorPicker) {
+        colorDisplay.classList.remove('active');
+    }
+});
+
+function startPosition(e) {
+    painting = true;
+    draw(e);
+    saveState();
+}
+
+function draw(e) {
+    if (!painting) return;
+    const pos = getMousePos(e);
+    ctx.lineWidth = brushSize.value;
+    ctx.lineCap = brushShape.value;
+    ctx.globalAlpha = opacity.value;
+    ctx.strokeStyle = colorPicker.value;
+
+    ctx.lineTo(pos.x, pos.y);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(pos.x, pos.y);
+}
+
+function endPosition() {
+    painting = false;
+    ctx.beginPath();
+}
+
+function saveState() {
+    undoStack.push(canvas.toDataURL());
+    if (undoStack.length > 10) undoStack.shift();
+    redoStack = [];
+}
+
+function restoreState(state) {
+    const img = new Image();
+    img.src = state;
+    img.onload = () => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    };
+}
+
+undoBtn.addEventListener('click', () => {
+    if (undoStack.length > 0) {
+        redoStack.push(canvas.toDataURL());
+        restoreState(undoStack.pop());
+    }
+});
+
+redoBtn.addEventListener('click', () => {
+    if (redoStack.length > 0) {
+        undoStack.push(canvas.toDataURL());
+        restoreState(redoStack.pop());
+    }
+});
+
+clearCanvasBtn.addEventListener('click', () => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    saveState();
+});
+
+saveBtn.addEventListener('click', () => {
+    const link = document.createElement('a');
+    link.download = 'my_drawing.png';
+    
+    const tempCanvas = document.createElement('canvas');
+    const tempCtx = tempCanvas.getContext('2d');
+    tempCanvas.width = canvas.width;
+    tempCanvas.height = canvas.height;
+    
+    tempCtx.fillStyle = '#ffffff';
+    tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+    
+    tempCtx.drawImage(canvas, 0, 0);
+    
+    link.href = tempCanvas.toDataURL();
+    link.click();
+});
+
+// Event Listeners למחשב
+canvas.addEventListener('mousedown', startPosition);
+canvas.addEventListener('mousemove', draw);
+canvas.addEventListener('mouseup', endPosition);
+canvas.addEventListener('mouseleave', endPosition);
+
+// Event Listeners למובייל
+canvas.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    startPosition(e.touches[0]);
+});
+canvas.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+    draw(e.touches[0]);
+});
+canvas.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    endPosition();
+});
+
+        menuToggle.addEventListener('click', () => {
+            toolbar.classList.toggle('show');
         });
     </script>
 </body>
