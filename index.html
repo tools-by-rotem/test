@@ -234,12 +234,6 @@ const accessibilityChecks = {
         success: "כל התמונות בדף מכילות תיאור חלופי - מצוין! זה מאפשר לאנשים עם לקויות ראייה להבין את תוכן התמונות",
         fix: "הוסף תיאור alt משמעותי לכל התמונות באתר המתאר את תוכן התמונה"
     },
-    links: {
-        check: (doc) => ![...doc.querySelectorAll("a")].some(link => !link.textContent.trim()),
-        message: "טקסט בקישורים",
-        success: "כל הקישורים בדף מכילים טקסט תיאורי - זה עוזר למשתמשים להבין את יעד הקישור לפני הלחיצה",
-        fix: "הוסף טקסט תיאורי לכל הקישורים שיסביר את יעד הקישור"
-    },
     linksTitle: {
         check: (doc) => ![...doc.querySelectorAll("a")].some(link => 
             link.textContent.toLowerCase().includes('לחץ כאן') || 
