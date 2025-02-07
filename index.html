@@ -1,18 +1,161 @@
 <!DOCTYPE html>
-<html dir="rtl" lang="he">
+<html lang="he">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex,nofollow">
-    <title>זהו עמוד ניסיונות</title>
-    <meta name="description" content="לרוב גם ככה לא יהיה פה שום דבר">
-    <script src="https://cdn.enable.co.il/licenses/enable-L34385vlixga9kjh-1224-66195/init.js"></script>
+    <title>בודק נגישות</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            text-align: center;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        input {
+            width: 80%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 20px;
+            background: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .loading {
+            display: none;
+            margin: 10px auto;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #007BFF;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        ul {
+            text-align: left;
+            padding: 0;
+        }
+        li {
+            list-style: none;
+            padding: 5px;
+            border-bottom: 1px solid #ddd;
+        }
+    </style>
 </head>
 <body>
-    <main class="main-content">
-        <div class="container">
-            <header class="page-header">
-                <h1>זהו עמוד ניסיונות</h1>
-                <p>לרוב לא תמצאו פה כלום, אם יהיה פה משהו זה יהיה לזמן ממש קצר ובסוף יעבור לאתר הראשי.</p>
+    <div class="container">
+        <h1>בודק נגישות</h1>
+        <input type="text" id="url" placeholder="הזן כתובת URL לבדיקה">
+        <button onclick="fetchAndCheckPage()">בדוק נגישות</button>
+        <div class="loading" id="loading"></div>
+        <ul id="report"></ul>
+    </div>
+    
+    <script>
+        async function fetchAndCheckPage() {
+            const url = document.getElementById("url").value;
+            const report = document.getElementById("report");
+            const loading = document.getElementById("loading");
+
+            if (!url) {
+                alert("אנא הזן כתובת URL");
+                return;
+            }
+
+            report.innerHTML = "";
+            loading.style.display = "block";
+
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error("שגיאה בטעינת העמוד");
+                const text = await response.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(text, "text/html");
+                runAccessibilityCheck(doc);
+            } catch (error) {
+                report.innerHTML = `<li>❌ לא ניתן לטעון את הדף</li>`;
+            } finally {
+                loading.style.display = "none";
+            }
+        }
+
+        function runAccessibilityCheck(doc) {
+            const report = document.getElementById("report");
+            let score = 100;
+
+            // בדיקת כותרת ראשית
+            if (!doc.querySelector("h1")) {
+                report.innerHTML += "<li>❌ אין כותרת ראשית (H1)</li>";
+                score -= 10;
+            } else {
+                report.innerHTML += "<li>✅ כותרת ראשית קיימת</li>";
+            }
+
+            // בדיקת ALT לתמונות
+            const images = doc.querySelectorAll("img");
+            let missingAlt = [...images].filter(img => !img.alt).length;
+            if (missingAlt > 0) {
+                report.innerHTML += `<li>❌ ${missingAlt} תמונות ללא ALT</li>`;
+                score -= 10;
+            } else {
+                report.innerHTML += "<li>✅ כל התמונות מכילות ALT</li>";
+            }
+
+            // בדיקת קישורים ללא טקסט
+            const links = doc.querySelectorAll("a");
+            let emptyLinks = [...links].filter(link => !link.textContent.trim()).length;
+            if (emptyLinks > 0) {
+                report.innerHTML += `<li>❌ ${emptyLinks} קישורים ללא טקסט</li>`;
+                score -= 10;
+            } else {
+                report.innerHTML += "<li>✅ כל הקישורים מכילים טקסט</li>";
+            }
+
+            // בדיקת כותרות היררכיות
+            const headings = ["h1", "h2", "h3", "h4", "h5", "h6"];
+            let missingHeadings = headings.every(tag => !doc.querySelector(tag));
+            if (missingHeadings) {
+                report.innerHTML += "<li>❌ אין כותרות היררכיות</li>";
+                score -= 10;
+            } else {
+                report.innerHTML += "<li>✅ יש כותרות היררכיות</li>";
+            }
+
+            // בדיקת רכיבי טופס עם תוויות
+            const inputs = doc.querySelectorAll("input, textarea, select");
+            let missingLabels = [...inputs].filter(input => !input.labels || input.labels.length === 0).length;
+            if (missingLabels > 0) {
+                report.innerHTML += `<li>❌ ${missingLabels} שדות טופס ללא תוויות</li>`;
+                score -= 10;
+            } else {
+                report.innerHTML += "<li>✅ כל שדות הטופס מכילים תוויות</li>";
+            }
+
+            // הצגת ציון סופי
+            report.innerHTML += `<li><strong>ציון נגישות כולל: ${score}/100</strong></li>`;
+        }
+    </script>
 </body>
 </html>
