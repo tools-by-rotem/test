@@ -53,13 +53,49 @@
             100% { transform: rotate(360deg); }
         }
         ul {
-            text-align: right; /* עדכון לRTL */
+            text-align: right;
             padding: 0;
         }
         li {
             list-style: none;
-            padding: 5px;
+            padding: 10px;
             border-bottom: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        .pass {
+            background-color: #28a745;
+            color: white;
+            font-weight: bold;
+        }
+        .fail {
+            background-color: #dc3545;
+            color: white;
+            font-weight: bold;
+        }
+        .info {
+            background-color: #ffc107;
+            color: black;
+            font-weight: bold;
+        }
+        .score {
+            font-size: 20px;
+            font-weight: bold;
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .score-green {
+            background-color: #28a745;
+            color: white;
+        }
+        .score-yellow {
+            background-color: #ffc107;
+            color: black;
+        }
+        .score-red {
+            background-color: #dc3545;
+            color: white;
         }
     </style>
 </head>
@@ -70,13 +106,18 @@
         <button onclick="fetchAndCheckPage()">בדוק נגישות</button>
         <div class="loading" id="loading"></div>
         <ul id="report"></ul>
+        <div id="score" class="score"></div>
+        <button id="downloadBtn" style="display:none;">הורד דו"ח כ-PDF</button>
     </div>
     
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>
         async function fetchAndCheckPage() {
             const url = document.getElementById("url").value;
             const report = document.getElementById("report");
             const loading = document.getElementById("loading");
+            const downloadBtn = document.getElementById("downloadBtn");
+            const scoreDiv = document.getElementById("score");
 
             if (!url) {
                 alert("אנא הזן כתובת URL");
@@ -84,7 +125,9 @@
             }
 
             report.innerHTML = "";
+            scoreDiv.innerHTML = "";
             loading.style.display = "block";
+            downloadBtn.style.display = "none";
 
             try {
                 const proxyUrl = 'https://api.allorigins.win/get?url=';
@@ -95,8 +138,9 @@
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(text, "text/html");
                 runAccessibilityCheck(doc);
+                downloadBtn.style.display = "inline-block";
             } catch (error) {
-                report.innerHTML = `<li>❌ לא ניתן לטעון את הדף</li>`;
+                report.innerHTML = `<li class="fail">❌ לא ניתן לטעון את הדף</li>`;
             } finally {
                 loading.style.display = "none";
             }
@@ -108,54 +152,69 @@
 
             // בדיקת כותרת ראשית
             if (!doc.querySelector("h1")) {
-                report.innerHTML += "<li>❌ אין כותרת ראשית (H1)</li>";
+                report.innerHTML += "<li class='fail'>❌ אין כותרת ראשית (H1) - חשוב שיהיה לכל עמוד כותרת ראשית</li>";
                 score -= 10;
             } else {
-                report.innerHTML += "<li>✅ כותרת ראשית קיימת</li>";
+                report.innerHTML += "<li class='pass'>✅ כותרת ראשית קיימת</li>";
             }
 
             // בדיקת ALT לתמונות
             const images = doc.querySelectorAll("img");
             let missingAlt = [...images].filter(img => !img.alt).length;
             if (missingAlt > 0) {
-                report.innerHTML += `<li>❌ ${missingAlt} תמונות ללא ALT</li>`;
+                report.innerHTML += `<li class='fail'>❌ ${missingAlt} תמונות ללא ALT - יש להוסיף תיאורים (alt) לתמונות</li>`;
                 score -= 10;
             } else {
-                report.innerHTML += "<li>✅ כל התמונות מכילות ALT</li>";
+                report.innerHTML += "<li class='pass'>✅ כל התמונות מכילות ALT</li>";
+            }
+
+            // בדיקת צבעים עם ניגודיות
+            const body = doc.querySelector("body");
+            const computedStyle = getComputedStyle(body);
+            const backgroundColor = computedStyle.backgroundColor;
+            const textColor = computedStyle.color;
+            const contrast = getContrast(backgroundColor, textColor);
+            if (contrast < 4.5) {
+                report.innerHTML += "<li class='fail'>❌ ניגודיות צבעים לא מספקת - יש לוודא שהצבעים מספיק מנוגדים לקריאות</li>";
+                score -= 10;
+            } else {
+                report.innerHTML += "<li class='pass'>✅ ניגודיות צבעים טובה</li>";
             }
 
             // בדיקת קישורים ללא טקסט
             const links = doc.querySelectorAll("a");
             let emptyLinks = [...links].filter(link => !link.textContent.trim()).length;
             if (emptyLinks > 0) {
-                report.innerHTML += `<li>❌ ${emptyLinks} קישורים ללא טקסט</li>`;
+                report.innerHTML += `<li class='fail'>❌ ${emptyLinks} קישורים ללא טקסט - יש להוסיף טקסט לכל קישור</li>`;
                 score -= 10;
             } else {
-                report.innerHTML += "<li>✅ כל הקישורים מכילים טקסט</li>";
-            }
-
-            // בדיקת כותרות היררכיות
-            const headings = ["h1", "h2", "h3", "h4", "h5", "h6"];
-            let missingHeadings = headings.every(tag => !doc.querySelector(tag));
-            if (missingHeadings) {
-                report.innerHTML += "<li>❌ אין כותרות היררכיות</li>";
-                score -= 10;
-            } else {
-                report.innerHTML += "<li>✅ יש כותרות היררכיות</li>";
-            }
-
-            // בדיקת רכיבי טופס עם תוויות
-            const inputs = doc.querySelectorAll("input, textarea, select");
-            let missingLabels = [...inputs].filter(input => !input.labels || input.labels.length === 0).length;
-            if (missingLabels > 0) {
-                report.innerHTML += `<li>❌ ${missingLabels} שדות טופס ללא תוויות</li>`;
-                score -= 10;
-            } else {
-                report.innerHTML += "<li>✅ כל שדות הטופס מכילים תוויות</li>";
+                report.innerHTML += "<li class='pass'>✅ כל הקישורים מכילים טקסט</li>";
             }
 
             // הצגת ציון סופי
-            report.innerHTML += `<li><strong>ציון נגישות כולל: ${score}/100</strong></li>`;
+            if (score >= 90) {
+                scoreDiv.innerHTML = `<strong class="score-green">ציון נגישות: ${score}/100 - מצוין!</strong>`;
+            } else if (score >= 50) {
+                scoreDiv.innerHTML = `<strong class="score-yellow">ציון נגישות: ${score}/100 - יש לשפר</strong>`;
+            } else {
+                scoreDiv.innerHTML = `<strong class="score-red">ציון נגישות: ${score}/100 - לא נגיש</strong>`;
+            }
+        }
+
+        document.getElementById("downloadBtn").addEventListener("click", function() {
+            const doc = new jsPDF();
+            const content = document.getElementById("report").innerText;
+            doc.text(content, 10, 10);
+            doc.save("accessibility-report.pdf");
+        });
+
+        // פונקציה לחישוב ניגודיות צבעים
+        function getContrast(rgb1, rgb2) {
+            const rgb1Array = rgb1.match(/\d+/g).map(Number);
+            const rgb2Array = rgb2.match(/\d+/g).map(Number);
+            const luminance1 = 0.2126 * Math.pow(rgb1Array[0] / 255, 2.2) + 0.7152 * Math.pow(rgb1Array[1] / 255, 2.2) + 0.0722 * Math.pow(rgb1Array[2] / 255, 2.2);
+            const luminance2 = 0.2126 * Math.pow(rgb2Array[0] / 255, 2.2) + 0.7152 * Math.pow(rgb2Array[1] / 255, 2.2) + 0.0722 * Math.pow(rgb2Array[2] / 255, 2.2);
+            return (Math.max(luminance1, luminance2) + 0.05) / (Math.min(luminance1, luminance2) + 0.05);
         }
     </script>
 </body>
