@@ -1,9 +1,8 @@
 <!DOCTYPE html>
-<html lang="he">
+<html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="robots" content="noindex,nofollow">
     <title>בודק נגישות</title>
     <style>
         body {
@@ -54,7 +53,7 @@
             100% { transform: rotate(360deg); }
         }
         ul {
-            text-align: left;
+            text-align: right; /* עדכון לRTL */
             padding: 0;
         }
         li {
@@ -88,7 +87,8 @@
             loading.style.display = "block";
 
             try {
-                const response = await fetch(url);
+                const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
+                const response = await fetch(proxyUrl + url);
                 if (!response.ok) throw new Error("שגיאה בטעינת העמוד");
                 const text = await response.text();
                 const parser = new DOMParser();
