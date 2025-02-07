@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>בודק נגישות</title>
+    <title>בדיקת נגישות לאתר אינטרנט</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
@@ -186,11 +186,11 @@
 </head>
 <body>
     <div class="container no-print">
-        <h1>בודק נגישות</h1>
-        <input type="text" id="url" placeholder="הזן כתובת URL לבדיקה">
+        <h1>בדיקת נגישות לאתר אינטרנט</h1>
+        <input type="text" id="url" placeholder="הזינו כתובת URL לבדיקה">
         <div class="buttons-container">
-            <button onclick="fetchAndCheckPage()">בדוק נגישות</button>
-            <button onclick="generatePDF()" id="downloadBtn" style="display: none;">הורד דו"ח PDF</button>
+            <button onclick="fetchAndCheckPage()">בדיקת נגישות</button>
+            <button onclick="generatePDF()" id="downloadBtn" style="display: none;">הורדת דו"ח נגישות</button>
         </div>
         <div class="loading" id="loading"></div>
         <div id="scoreContainer"></div>
@@ -209,7 +209,7 @@ const accessibilityChecks = {
         check: (doc) => !!doc.querySelector("h1"),
         message: "כותרת ראשית (H1)",
         success: "נמצאה כותרת ראשית בדף - זה מצוין! כותרת H1 עוזרת לקוראי מסך להבין את הנושא המרכזי של העמוד",
-        fix: "הוסף תגית <h1> בראש העמוד עם כותרת משמעותית המתארת את תוכן העמוד"
+        fix: "הוסיפו תגית <h1> בראש העמוד עם כותרת משמעותית המתארת את נושא המרכזי של העמוד"
     },
     headingHierarchy: {
         check: (doc) => {
@@ -226,13 +226,13 @@ const accessibilityChecks = {
         },
         message: "היררכיית כותרות תקינה",
         success: "היררכיית הכותרות בדף מסודרת נכון - אין דילוג בין רמות הכותרות (למשל מ-h1 ל-h3)",
-        fix: "ודא שהכותרות מסודרות בסדר היררכי הגיוני, ללא דילוג בין רמות. למשל: h1, אחריו h2, ורק אז h3"
+        fix: "וודאו שהכותרות מסודרות בסדר היררכי הגיוני, ללא דילוג בין רמות. למשל: h1, אחריו h2, ורק אז h3"
     },
     imgAlt: {
         check: (doc) => ![...doc.querySelectorAll("img")].some(img => !img.alt),
         message: "תגיות ALT לתמונות",
         success: "כל התמונות בדף מכילות תיאור חלופי - מצוין! זה מאפשר לאנשים עם לקויות ראייה להבין את תוכן התמונות",
-        fix: "הוסף תיאור alt משמעותי לכל התמונות באתר המתאר את תוכן התמונה"
+        fix: "הוסיפו תיאור alt משמעותי לכל התמונות באתר המתאר את תוכן התמונה"
     },
     linksTitle: {
         check: (doc) => ![...doc.querySelectorAll("a")].some(link => 
@@ -241,7 +241,7 @@ const accessibilityChecks = {
         ),
         message: "קישורים עם משמעות",
         success: "הקישורים בדף מכילים טקסט משמעותי במקום ביטויים כלליים כמו 'לחץ כאן'",
-        fix: "החלף ביטויים כמו 'לחץ כאן' בטקסט שמתאר את יעד הקישור"
+        fix: "החליפו ביטויים כמו 'לחץ כאן' בטקסט שמתאר את יעד הקישור"
     },
     contrast: {
         check: (doc) => {
@@ -250,31 +250,31 @@ const accessibilityChecks = {
         },
         message: "ניגודיות צבעים",
         success: "נמצאה ניגודיות צבעים טובה בין הטקסט לרקע - זה מקל על הקריאות עבור כל המשתמשים",
-        fix: "ודא יחס ניגודיות של לפחות 4.5:1 בין טקסט לרקע"
+        fix: "וודאו יחס ניגודיות של לפחות 4.5:1 בין טקסט לרקע"
     },
     labels: {
         check: (doc) => ![...doc.querySelectorAll("input, textarea, select")].some(input => !input.labels?.length),
         message: "תוויות לשדות טופס",
         success: "כל שדות הטופס מכילים תוויות - זה עוזר למשתמשים להבין מה נדרש בכל שדה",
-        fix: "הוסף תווית <label> לכל שדה טופס עם תיאור ברור של השדה"
+        fix: "הוסיפו תווית <label> לכל שדה טופס עם תיאור ברור של השדה"
     },
     landmarks: {
         check: (doc) => !!doc.querySelector("nav, main, header, footer"),
-        message: "אזורי ציון דף",
-        success: "נמצאו תגיות סמנטיות המגדירות אזורים בדף - זה עוזר לניווט באמצעות קורא מסך",
-        fix: "הוסף תגיות סמנטיות כמו nav, main, header, footer לאזורים המתאימים בדף"
+        message: "אזורים מוגדרים בדף",
+        success: "נמצאו תגיות סמנטיות לאזורים מוגדרים בדף - זה עוזר לניווט באמצעות קורא מסך",
+        fix: "הוסיפו תגיות סמנטיות כמו nav, main, header, footer לאזורים המתאימים בדף"
     },
     language: {
         check: (doc) => !!doc.documentElement.lang,
         message: "הגדרת שפה",
         success: "השפה מוגדרת נכון בדף - זה עוזר לקוראי מסך לבטא את הטקסט נכון",
-        fix: "הוסף מאפיין lang לתגית html עם קוד השפה המתאים"
+        fix: "הוסיפו מאפיין lang לתגית html עם קוד השפה המתאים"
     },
     tabIndex: {
         check: (doc) => ![...doc.querySelectorAll("[tabindex]")].some(el => el.tabIndex < 0),
         message: "סדר ניווט מקלדת",
         success: "סדר הניווט במקלדת תקין - זה מאפשר ניווט נוח באמצעות מקש Tab",
-        fix: "הימנע משימוש בערכי tabindex שליליים והשתמש במבנה HTML לוגי"
+        fix: "הימנעו משימוש בערכי tabindex שליליים והשתמשו במבנה HTML לוגי"
     },
     ariaLabels: {
         check: (doc) => {
@@ -283,7 +283,7 @@ const accessibilityChecks = {
         },
         message: "תיאורי ARIA",
         success: "נמצאו תיאורי ARIA בדף - זה מספק מידע נוסף למשתמשי קוראי מסך",
-        fix: "הוסף תיאורי aria מתאימים לאלמנטים שדורשים הסבר נוסף עבור קוראי מסך"
+        fix: "הוסיפו תיאורי aria מתאימים לאלמנטים שדורשים הסבר נוסף עבור קוראי מסך"
     },
     skipLink: {
         check: (doc) => {
@@ -295,7 +295,7 @@ const accessibilityChecks = {
         },
         message: "קישור דילוג על ניווט",
         success: "נמצא קישור לדילוג על אזור הניווט - זה עוזר למשתמשי מקלדת להגיע מהר לתוכן המרכזי",
-        fix: "הוסף קישור 'דלג לתוכן הראשי' בתחילת העמוד שיאפשר דילוג על אזור הניווט"
+        fix: "הוסיפו קישור 'דילוג לתוכן הראשי' בתחילת העמוד שיאפשר דילוג על אזור הניווט"
     },
     tableHeaders: {
         check: (doc) => {
@@ -304,7 +304,7 @@ const accessibilityChecks = {
         },
         message: "כותרות לטבלאות",
         success: "כל הטבלאות מכילות כותרות - זה עוזר להבין את המבנה והתוכן של הטבלה",
-        fix: "הוסף תגיות <th> לכותרות העמודות והשורות בכל טבלה"
+        fix: "הוסיפו תגיות <th> לכותרות העמודות והשורות בכל טבלה"
     }
 };
 
