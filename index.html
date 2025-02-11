@@ -328,7 +328,7 @@ async function fetchAndCheckPage() {
     downloadBtn.style.display = "none";
 
     try {
-        const proxyUrl = 'https://square-meadow-f174.rotemkanon-dev.workers.dev/?url=';
+        const proxyUrl = 'https://c918e52e-square-meadow-f174.rotemkanon-dev.workers.dev/?url=';
         const response = await fetch(proxyUrl + encodeURIComponent(url));
         if (!response.ok) throw new Error("שגיאה בטעינת העמוד");
         const data = await response.json();
