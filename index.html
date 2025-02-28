@@ -273,6 +273,16 @@
             100% { transform: rotate(360deg); }
         }
 
+        .error-message {
+            display: none;
+            color: #e74c3c;
+            margin: 15px 0;
+            padding: 10px;
+            background-color: #fadbd8;
+            border-radius: 5px;
+            text-align: center;
+        }
+
         @media (max-width: 768px) {
             button {
                 width: 100%;
@@ -384,6 +394,10 @@
         <div id="loading" class="loading">
             <div class="loading-spinner"></div>
             <p>טוען את העמוד...</p>
+        </div>
+        
+        <div id="errorMessage" class="error-message">
+            שגיאה בטעינת העמוד. ייתכן שהאתר חוסם טעינה ב-iframe או שיש בעיית CORS אחרת.
         </div>
 
         <div class="tabs">
@@ -512,38 +526,140 @@
                 return;
             }
 
+            // Hide error message if it was previously shown
+            document.getElementById('errorMessage').style.display = 'none';
+            
             // Show loading indicator
             document.getElementById('loading').style.display = 'block';
 
-            // Use allOrigins as a proxy to bypass CORS
-            const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
+            // Try different proxy services
+            tryLoadWithProxy(url);
+        }
+
+        function tryLoadWithProxy(url) {
+            // First try with cors-anywhere proxy
+            const corsAnywhereProxy = 'https://cors-anywhere.herokuapp.com/';
+            const proxyUrl1 = corsAnywhereProxy + url;
+            
+            // Alternative proxy options
+            const allOriginsProxy = 'https://api.allorigins.win/get?url=';
+            const proxyUrl2 = allOriginsProxy + encodeURIComponent(url);
             
             const iframeAndroid = document.getElementById('testFrameAndroid');
             const iframeIphone = document.getElementById('testFrameIphone');
-
-            // Set the src attributes to the proxy URL
-            iframeAndroid.src = proxyUrl;
-            iframeIphone.src = proxyUrl;
-
-            // Hide loading indicator when iframes are loaded
+            
+            // Try direct embedding first (for sites that allow it)
+            try {
+                iframeAndroid.src = url;
+                iframeIphone.src = url;
+                
+                // Set timeout to check if direct embedding worked
+                setTimeout(function() {
+                    checkIframeLoaded(iframeAndroid, iframeIphone, proxyUrl1, proxyUrl2, url);
+                }, 3000);
+            } catch (error) {
+                // If direct embedding fails, try with proxy
+                tryWithCorsAnywhere(proxyUrl1, proxyUrl2, url);
+            }
+        }
+        
+        function checkIframeLoaded(iframeAndroid, iframeIphone, proxyUrl1, proxyUrl2, originalUrl) {
+            // Check if iframes have loaded content
+            try {
+                // Try to access iframe content - if this fails, it means CORS is blocking
+                const androidContent = iframeAndroid.contentWindow.document;
+                const iphoneContent = iframeIphone.contentWindow.document;
+                
+                // If we can access content, it loaded successfully
+                document.getElementById('loading').style.display = 'none';
+            } catch (error) {
+                // If we can't access content, try with proxy
+                tryWithCorsAnywhere(proxyUrl1, proxyUrl2, originalUrl);
+            }
+        }
+        
+        function tryWithCorsAnywhere(proxyUrl1, proxyUrl2, originalUrl) {
+            const iframeAndroid = document.getElementById('testFrameAndroid');
+            const iframeIphone = document.getElementById('testFrameIphone');
+            
+            // Try with CORS Anywhere proxy
+            iframeAndroid.src = proxyUrl1;
+            iframeIphone.src = proxyUrl1;
+            
+            // Set up load and error handlers
             iframeAndroid.onload = function() {
                 document.getElementById('loading').style.display = 'none';
             };
-
+            
             iframeIphone.onload = function() {
                 document.getElementById('loading').style.display = 'none';
             };
-
-            // Handle errors
+            
             iframeAndroid.onerror = function() {
-                document.getElementById('loading').style.display = 'none';
-                alert('שגיאה בטעינת העמוד. ייתכן שהאתר חוסם טעינה ב-iframe או שיש בעיית CORS אחרת.');
+                // If CORS Anywhere fails, try with AllOrigins
+                tryWithAllOrigins(proxyUrl2, originalUrl);
             };
-
+            
             iframeIphone.onerror = function() {
-                document.getElementById('loading').style.display = 'none';
-                alert('שגיאה בטעינת העמוד. ייתכן שהאתר חוסם טעינה ב-iframe או שיש בעיית CORS אחרת.');
+                // If CORS Anywhere fails, try with AllOrigins
+                tryWithAllOrigins(proxyUrl2, originalUrl);
             };
+        }
+        
+        function tryWithAllOrigins(proxyUrl, originalUrl) {
+            const iframeAndroid = document.getElementById('testFrameAndroid');
+            const iframeIphone = document.getElementById('testFrameIphone');
+            
+            // Try with AllOrigins proxy
+            fetch(proxyUrl)
+                .then(response => response.json())
+                .then(data => {
+                    // Create blob URLs from the HTML content
+                    const blob = new Blob([data.contents], { type: 'text/html' });
+                    const blobUrl = URL.createObjectURL(blob);
+                    
+                    // Set iframe sources to the blob URL
+                    iframeAndroid.src = blobUrl;
+                    iframeIphone.src = blobUrl;
+                    
+                    document.getElementById('loading').style.display = 'none';
+                })
+                .catch(error => {
+                    // If all proxies fail, try with a fallback method or show error
+                    tryWithIframely(originalUrl);
+                });
+        }
+        
+        function tryWithIframely(url) {
+            const iframeAndroid = document.getElementById('testFrameAndroid');
+            const iframeIphone = document.getElementById('testFrameIphone');
+            
+            // Try with Iframely (if available)
+            const iframelyUrl = 'https://iframe.ly/api/iframely?url=' + encodeURIComponent(url) + '&iframe=1&omit_script=1';
+            
+            iframeAndroid.src = iframelyUrl;
+            iframeIphone.src = iframelyUrl;
+            
+            iframeAndroid.onload = function() {
+                document.getElementById('loading').style.display = 'none';
+            };
+            
+            iframeIphone.onload = function() {
+                document.getElementById('loading').style.display = 'none';
+            };
+            
+            iframeAndroid.onerror = function() {
+                showError();
+            };
+            
+            iframeIphone.onerror = function() {
+                showError();
+            };
+        }
+        
+        function showError() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('errorMessage').style.display = 'block';
         }
 
         function switchTab(tab) {
