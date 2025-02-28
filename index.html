@@ -479,15 +479,25 @@
     </footer>
 
  <script>
-    function loadPage() {
+   function loadPage() {
     const url = document.getElementById('urlInput').value;
-    const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(url)}`;
+    const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
 
-    const iframeAndroid = document.getElementById('testFrameAndroid');
-    const iframeIphone = document.getElementById('testFrameIphone');
-
-    iframeAndroid.src = proxyUrl;
-    iframeIphone.src = proxyUrl;
+    fetch(proxyUrl)
+        .then(response => response.text())
+        .then(html => {
+            const iframeAndroid = document.getElementById('testFrameAndroid').contentWindow.document;
+            const iframeIphone = document.getElementById('testFrameIphone').contentWindow.document;
+            
+            iframeAndroid.open();
+            iframeAndroid.write(html);
+            iframeAndroid.close();
+            
+            iframeIphone.open();
+            iframeIphone.write(html);
+            iframeIphone.close();
+        })
+        .catch(error => console.error('Error loading page:', error));
 }
 
     function switchTab(tab) {
