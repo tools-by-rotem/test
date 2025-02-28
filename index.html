@@ -479,26 +479,32 @@
     </footer>
 
  <script>
-   function loadPage() {
-    const url = document.getElementById('urlInput').value;
-    const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+<script>
+    function loadPage() {
+        const url = document.getElementById('urlInput').value;
+        const iframeAndroid = document.getElementById('testFrameAndroid');
+        const iframeIphone = document.getElementById('testFrameIphone');
 
-    fetch(proxyUrl)
-        .then(response => response.text())
-        .then(html => {
-            const iframeAndroid = document.getElementById('testFrameAndroid').contentWindow.document;
-            const iframeIphone = document.getElementById('testFrameIphone').contentWindow.document;
-            
-            iframeAndroid.open();
-            iframeAndroid.write(html);
-            iframeAndroid.close();
-            
-            iframeIphone.open();
-            iframeIphone.write(html);
-            iframeIphone.close();
-        })
-        .catch(error => console.error('Error loading page:', error));
-}
+        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+
+        fetch(proxyUrl)
+            .then(response => response.json()) // נקבל את ה-JSON
+            .then(data => {
+                const iframeAndroidDoc = iframeAndroid.contentWindow.document;
+                const iframeIphoneDoc = iframeIphone.contentWindow.document;
+                
+                iframeAndroidDoc.open();
+                iframeIphoneDoc.open();
+
+                // הזרקת ה-HTML לתוך ה-iframe
+                iframeAndroidDoc.write(data.contents);
+                iframeIphoneDoc.write(data.contents);
+
+                iframeAndroidDoc.close();
+                iframeIphoneDoc.close();
+            })
+            .catch(error => console.error('Error loading page:', error));
+    }
 
     function switchTab(tab) {
         const tabs = document.querySelectorAll('.tab-content');
