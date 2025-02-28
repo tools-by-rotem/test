@@ -273,16 +273,6 @@
             100% { transform: rotate(360deg); }
         }
 
-        .error-message {
-            display: none;
-            color: #e74c3c;
-            margin: 15px 0;
-            padding: 10px;
-            background-color: #fadbd8;
-            border-radius: 5px;
-            text-align: center;
-        }
-
         @media (max-width: 768px) {
             button {
                 width: 100%;
@@ -394,10 +384,6 @@
         <div id="loading" class="loading">
             <div class="loading-spinner"></div>
             <p>טוען את העמוד...</p>
-        </div>
-        
-        <div id="errorMessage" class="error-message">
-            שגיאה בטעינת העמוד. ייתכן שהאתר חוסם טעינה ב-iframe או שיש בעיית CORS אחרת.
         </div>
 
         <div class="tabs">
@@ -526,225 +512,38 @@
                 return;
             }
 
-            // Hide error message if it was previously shown
-            document.getElementById('errorMessage').style.display = 'none';
-            
             // Show loading indicator
             document.getElementById('loading').style.display = 'block';
 
-            // Try different proxy services
-            tryLoadWithProxy(url);
-        }
-
-        function tryLoadWithProxy(url) {
-            // Try direct embedding first (for sites that allow it)
-            const iframeAndroid = document.getElementById('testFrameAndroid');
-            const iframeIphone = document.getElementById('testFrameIphone');
-            
-            try {
-                // Try direct loading first
-                iframeAndroid.src = url;
-                iframeIphone.src = url;
-                
-                // Set timeout to check if direct embedding worked
-                setTimeout(function() {
-                    checkIframeLoaded(iframeAndroid, iframeIphone, url);
-                }, 3000);
-            } catch (error) {
-                // If direct embedding fails, try with proxy
-                tryWithProxyServer(url);
-            }
-        }
-        
-        function checkIframeLoaded(iframeAndroid, iframeIphone, originalUrl) {
-            // Check if iframes have loaded content
-            try {
-                // Try to access iframe content - if this fails, it means CORS is blocking
-                const androidContent = iframeAndroid.contentWindow.document;
-                const iphoneContent = iframeIphone.contentWindow.document;
-                
-                // If we can access content, it loaded successfully
-                document.getElementById('loading').style.display = 'none';
-            } catch (error) {
-                // If we can't access content, try with proxy
-                tryWithProxyServer(originalUrl);
-            }
-        }
-        
-        function tryWithProxyServer(url) {
-            const iframeAndroid = document.getElementById('testFrameAndroid');
-            const iframeIphone = document.getElementById('testFrameIphone');
-            
-            // Use a more reliable proxy service
+            // Use allOrigins as a proxy to bypass CORS
             const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
             
-            // Try with AllOrigins proxy
-            fetch(proxyUrl)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.text();
-                })
-                .then(html => {
-                    // Process the HTML to fix relative URLs
-                    const processedHtml = processHtml(html, url);
-                    
-                    // Create blob URLs from the processed HTML content
-                    const blob = new Blob([processedHtml], { type: 'text/html' });
-                    const blobUrl = URL.createObjectURL(blob);
-                    
-                    // Set iframe sources to the blob URL
-                    iframeAndroid.src = blobUrl;
-                    iframeIphone.src = blobUrl;
-                    
-                    document.getElementById('loading').style.display = 'none';
-                })
-                .catch(error => {
-                    console.error('Error fetching content:', error);
-                    tryWithJsonpProxy(url);
-                });
-        }
-        
-        function processHtml(html, baseUrl) {
-            // Create a temporary DOM element to manipulate the HTML
-            const tempDoc = document.implementation.createHTMLDocument();
-            tempDoc.documentElement.innerHTML = html;
-            
-            // Get the base URL (domain)
-            const urlObj = new URL(baseUrl);
-            const domain = urlObj.origin;
-            const basePath = urlObj.pathname.substring(0, urlObj.pathname.lastIndexOf('/') + 1);
-            
-            // Fix relative URLs in various attributes
-            fixRelativeUrls(tempDoc, 'img', 'src', domain, basePath);
-            fixRelativeUrls(tempDoc, 'link', 'href', domain, basePath);
-            fixRelativeUrls(tempDoc, 'script', 'src', domain, basePath);
-            fixRelativeUrls(tempDoc, 'a', 'href', domain, basePath);
-            
-            // Add base tag to head
-            const baseTag = tempDoc.createElement('base');
-            baseTag.href = domain;
-            const head = tempDoc.getElementsByTagName('head')[0];
-            if (head) {
-                head.insertBefore(baseTag, head.firstChild);
-            }
-            
-            // Return the processed HTML
-            return tempDoc.documentElement.outerHTML;
-        }
-        
-        function fixRelativeUrls(doc, tagName, attribute, domain, basePath) {
-            const elements = doc.getElementsByTagName(tagName);
-            for (let i = 0; i < elements.length; i++) {
-                const element = elements[i];
-                const attrValue = element.getAttribute(attribute);
-                
-                if (attrValue && !attrValue.match(/^(https?:\/\/|data:|\/\/|#|javascript:|mailto:)/i)) {
-                    // It's a relative URL, fix it
-                    if (attrValue.startsWith('/')) {
-                        // Absolute path relative to domain
-                        element.setAttribute(attribute, domain + attrValue);
-                    } else {
-                        // Relative to current path
-                        element.setAttribute(attribute, domain + basePath + attrValue);
-                    }
-                }
-            }
-        }
-        
-        function tryWithJsonpProxy(url) {
             const iframeAndroid = document.getElementById('testFrameAndroid');
             const iframeIphone = document.getElementById('testFrameIphone');
-            
-            // Try with another proxy service that supports JSONP
-            const proxyUrl = 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(url);
-            
-            fetch(proxyUrl)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.text();
-                })
-                .then(html => {
-                    // Process the HTML to fix relative URLs
-                    const processedHtml = processHtml(html, url);
-                    
-                    // Create blob URLs from the processed HTML content
-                    const blob = new Blob([processedHtml], { type: 'text/html' });
-                    const blobUrl = URL.createObjectURL(blob);
-                    
-                    // Set iframe sources to the blob URL
-                    iframeAndroid.src = blobUrl;
-                    iframeIphone.src = blobUrl;
-                    
-                    document.getElementById('loading').style.display = 'none';
-                })
-                .catch(error => {
-                    console.error('Error fetching content with second proxy:', error);
-                    tryWithIframe(url);
-                });
-        }
-        
-        function tryWithIframe(url) {
-            const iframeAndroid = document.getElementById('testFrameAndroid');
-            const iframeIphone = document.getElementById('testFrameIphone');
-            
-            // Create a simple HTML page that embeds the target URL in an iframe
-            const html = `
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <meta charset="UTF-8">
-                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <title>Mobile Preview</title>
-                    <style>
-                        html, body, iframe {
-                            margin: 0;
-                            padding: 0;
-                            height: 100%;
-                            width: 100%;
-                            border: none;
-                            overflow: hidden;
-                        }
-                    </style>
-                </head>
-                <body>
-                    <iframe src="${url}" sandbox="allow-same-origin allow-scripts allow-forms" referrerpolicy="no-referrer"></iframe>
-                </body>
-                </html>
-            `;
-            
-            // Create blob URLs from the HTML content
-            const blob = new Blob([html], { type: 'text/html' });
-            const blobUrl = URL.createObjectURL(blob);
-            
-            // Set iframe sources to the blob URL
-            iframeAndroid.src = blobUrl;
-            iframeIphone.src = blobUrl;
-            
-            // Set up load and error handlers
+
+            // Set the src attributes to the proxy URL
+            iframeAndroid.src = proxyUrl;
+            iframeIphone.src = proxyUrl;
+
+            // Hide loading indicator when iframes are loaded
             iframeAndroid.onload = function() {
                 document.getElementById('loading').style.display = 'none';
             };
-            
+
             iframeIphone.onload = function() {
                 document.getElementById('loading').style.display = 'none';
             };
-            
+
+            // Handle errors
             iframeAndroid.onerror = function() {
-                showError();
+                document.getElementById('loading').style.display = 'none';
+                alert('שגיאה בטעינת העמוד. ייתכן שהאתר חוסם טעינה ב-iframe או שיש בעיית CORS אחרת.');
             };
-            
+
             iframeIphone.onerror = function() {
-                showError();
+                document.getElementById('loading').style.display = 'none';
+                alert('שגיאה בטעינת העמוד. ייתכן שהאתר חוסם טעינה ב-iframe או שיש בעיית CORS אחרת.');
             };
-        }
-        
-        function showError() {
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('errorMessage').style.display = 'block';
         }
 
         function switchTab(tab) {
