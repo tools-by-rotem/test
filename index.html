@@ -480,15 +480,15 @@
 
  <script>
     function loadPage() {
-        const url = document.getElementById('urlInput').value;
-        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+    const url = document.getElementById('urlInput').value;
+    const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(url)}`;
 
-        const iframeAndroid = document.getElementById('testFrameAndroid');
-        const iframeIphone = document.getElementById('testFrameIphone');
+    const iframeAndroid = document.getElementById('testFrameAndroid');
+    const iframeIphone = document.getElementById('testFrameIphone');
 
-        iframeAndroid.src = proxyUrl;
-        iframeIphone.src = proxyUrl;
-    }
+    iframeAndroid.src = proxyUrl;
+    iframeIphone.src = proxyUrl;
+}
 
     function switchTab(tab) {
         const tabs = document.querySelectorAll('.tab-content');
