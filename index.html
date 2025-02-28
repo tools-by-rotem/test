@@ -480,7 +480,7 @@
 
  <script>
 <script>
-    function loadPage() {
+function loadPage() {
         const url = document.getElementById('urlInput').value;
         const iframeAndroid = document.getElementById('testFrameAndroid');
         const iframeIphone = document.getElementById('testFrameIphone');
@@ -488,22 +488,16 @@
         const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
 
         fetch(proxyUrl)
-            .then(response => response.json()) // נקבל את ה-JSON
+            .then(response => response.json())  // שליפת התוכן בקובץ JSON
             .then(data => {
-                const iframeAndroidDoc = iframeAndroid.contentWindow.document;
-                const iframeIphoneDoc = iframeIphone.contentWindow.document;
-                
-                iframeAndroidDoc.open();
-                iframeIphoneDoc.open();
-
-                // הזרקת ה-HTML לתוך ה-iframe
-                iframeAndroidDoc.write(data.contents);
-                iframeIphoneDoc.write(data.contents);
-
-                iframeAndroidDoc.close();
-                iframeIphoneDoc.close();
+                // טעינת ה-HTML בתוך ה-iframe
+                iframeAndroid.srcdoc = data.contents; // "srcdoc" טוען את התוכן ישירות בתוך ה-iframe
+                iframeIphone.srcdoc = data.contents;
             })
-            .catch(error => console.error('Error loading page:', error));
+            .catch(error => {
+                console.error('Error loading page:', error);
+                alert("Error loading the page. Please try again.");
+            });
     }
 
     function switchTab(tab) {
