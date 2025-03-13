@@ -1,18 +1,412 @@
 <!DOCTYPE html>
-<html dir="rtl" lang="he">
+<html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="robots" content="noindex,nofollow">
-    <title>זהו עמוד ניסיונות</title>
-    <meta name="description" content="לרוב גם ככה לא יהיה פה שום דבר">
-    <script src="https://cdn.enable.co.il/licenses/enable-L34385vlixga9kjh-1224-66195/init.js"></script>
+    <title>בודק Open Graph</title>
+    <style>
+        :root {
+            --primary-color: #4a6ee0;
+            --secondary-color: #6c8ff8;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f4f7fc;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .description {
+            margin-bottom: 20px;
+            text-align: center;
+            color: var(--dark-color);
+        }
+
+        .input-group {
+    display: flex;
+    flex-direction: column; /* שורות אחת מעל השנייה */
+    align-items: center; /* ממרכז את התוכן */
+    margin-bottom: 10px;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+/* הוסף סגנון לכפתור שהוא מתחת לשורת החיפוש */
+.input-group {
+    display: block;
+    margin-bottom: 10px;
+    text-align: center; /* ממרכז את התוכן */
+}
+
+.check-button {
+    display: inline-block; /* מאפשר לכפתור להיות ממורכז */
+    width: auto; /* מאפשר לרוחב להיות לפי התוכן */
+    padding: 12px 20px;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 16px;
+    transition: background-color 0.3s;
+    margin-bottom: 20px;
+    margin-top: 10px;
+}
+
+.check-button:hover {
+    background-color: var(--secondary-color);
+}
+
+
+        .result {
+            margin-top: 20px;
+            display: none;
+        }
+
+        .result.show {
+            display: block;
+        }
+
+        .preview-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .preview-image {
+            width: 100%;
+            height: 300px;
+            background-size: cover;
+            background-position: center;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .preview-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .preview-content {
+            padding: 15px;
+        }
+
+        .preview-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .preview-description {
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .preview-url {
+            color: #999;
+            font-size: 14px;
+        }
+
+        .raw-data {
+            margin-top: 20px;
+            background-color: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+        }
+
+        .raw-data h3 {
+            margin-bottom: 10px;
+        }
+
+        .raw-data pre {
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .tag-list {
+            margin-top: 20px;
+        }
+
+        .tag-list h3 {
+            margin-bottom: 10px;
+        }
+
+        .tag {
+            display: flex;
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .tag:last-child {
+            border-bottom: none;
+        }
+
+        .tag-name {
+            font-weight: bold;
+            width: 120px;
+            flex-shrink: 0;
+        }
+
+        .tag-value {
+            flex: 1;
+            word-break: break-all;
+        }
+
+        .error {
+            background-color: var(--danger-color);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .loading {
+            text-align: center;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top: 4px solid var(--primary-color);
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .recommendations {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: rgb(240, 249, 255);
+            border-radius: 5px;
+            border-right: 4px solid var(--primary-color);
+        }
+
+        .recommendations h3 {
+            margin-bottom: 10px;
+            color: var(--primary-color);
+        }
+
+        .recommendations ul {
+            padding-right: 20px;
+        }
+
+        .recommendations li {
+            margin-bottom: 5px;
+        }
+
+        .missing {
+            color: var(--danger-color);
+        }
+
+        .found {
+            color: var(--success-color);
+        }
+    </style>
 </head>
 <body>
-    <main class="main-content">
-        <div class="container">
-            <header class="page-header">
-                <h1>זהו עמוד ניסיונות</h1>
-                <p>לרוב לא תמצאו פה כלום, אם יהיה פה משהו זה יהיה לזמן ממש קצר ובסוף יעבור לאתר הראשי.</p>
+    <div class="container">
+        <h1>בודק Open Graph</h1>
+        <p class="description">הכנס כתובת URL כדי לבדוק את תגיות ה-Open Graph של האתר</p>
+        
+        <div class="input-group">
+    <input type="url" id="url-input" placeholder="הכנס כתובת URL" dir="ltr">
+    <button id="check-button" class="check-button">בדוק</button>
+</div>
+        
+        <div id="error-message" class="error" style="display: none;"></div>
+        
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>טוען נתונים...</p>
+        </div>
+        
+        <div id="result" class="result">
+            <h2>תצוגה מקדימה</h2>
+            <div class="preview-card">
+                <div class="preview-image">
+                    <img id="preview-img" src="/api/placeholder/800/400" alt="תמונת Open Graph">
+                </div>
+                <div class="preview-content">
+                    <div id="preview-title" class="preview-title">כותרת הדף</div>
+                    <div id="preview-description" class="preview-description">תיאור הדף</div>
+                    <div id="preview-url" class="preview-url">domain.com</div>
+                </div>
+            </div>
+            
+            <div class="recommendations" id="recommendations">
+                <h3>המלצות לשיפור</h3>
+                <ul id="recommendations-list"></ul>
+            </div>
+            
+            <div class="tag-list">
+                <h3>תגיות Open Graph שנמצאו</h3>
+                <div id="tags-container"></div>
+            </div>
+            
+            <div class="raw-data">
+                <h3>נתונים גולמיים</h3>
+                <pre id="raw-data-content"></pre>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // קוד התחלתי נשאר כפי שהיה
+            
+            function updatePreview(data, pageUrl) {
+                // Set title
+                const title = data['Open Graph']['og:title'] || 
+                              data['Twitter Card']['twitter:title'] || 
+                              data['Standard HTML']['title'] || 
+                              'אין כותרת';
+                previewTitle.textContent = title;
+                
+                // Set description
+                const description = data['Open Graph']['og:description'] || 
+                                    data['Twitter Card']['twitter:description'] || 
+                                    data['Standard HTML']['description'] || 
+                                    'אין תיאור';
+                previewDescription.textContent = description;
+                
+                // Set image
+                const imageUrl = data['Open Graph']['og:image'] || 
+                                 data['Twitter Card']['twitter:image'] || 
+                                 '/api/placeholder/800/400';
+                
+                // Make sure image URL is absolute
+                let fullImageUrl = imageUrl;
+                if (imageUrl && !imageUrl.startsWith('http') && !imageUrl.startsWith('/api/placeholder')) {
+                    if (imageUrl.startsWith('/')) {
+                        // Handle relative URLs that start with a slash
+                        const urlObj = new URL(pageUrl);
+                        fullImageUrl = `${urlObj.protocol}//${urlObj.host}${imageUrl}`;
+                    } else {
+                        // Handle relative URLs that don't start with a slash
+                        fullImageUrl = new URL(imageUrl, pageUrl).href;
+                    }
+                }
+                
+                previewImg.src = fullImageUrl;
+                previewImg.onerror = function() {
+                    this.src = '/api/placeholder/800/400';
+                    this.alt = 'תמונה לא זמינה';
+                };
+                
+                // Set URL
+                const urlObj = new URL(pageUrl);
+                previewUrl.textContent = urlObj.hostname;
+            }
+            
+            function showRecommendations(data) {
+                recommendationsList.innerHTML = '';
+                const recommendations = [];
+                
+                // Check for missing critical Open Graph tags
+                if (!data['Open Graph']['og:title']) {
+                    recommendations.push('<li class="missing">חסר תג og:title</li>');
+                } else {
+                    recommendations.push('<li class="found">נמצא og:title ✓</li>');
+                }
+                
+                if (!data['Open Graph']['og:description']) {
+                    recommendations.push('<li class="missing">חסר תג og:description</li>');
+                } else {
+                    recommendations.push('<li class="found">נמצא og:description ✓</li>');
+                }
+                
+                if (!data['Open Graph']['og:image']) {
+                    recommendations.push('<li class="missing">חסר תג og:image</li>');
+                } else {
+                    recommendations.push('<li class="found">נמצא og:image ✓</li>');
+                }
+                
+                if (!data['Open Graph']['og:url']) {
+                    recommendations.push('<li class="missing">חסר תג og:url</li>');
+                } else {
+                    recommendations.push('<li class="found">נמצא og:url ✓</li>');
+                }
+                
+                if (!data['Open Graph']['og:type']) {
+                    recommendations.push('<li class="missing">חסר תג og:type</li>');
+                } else {
+                    recommendations.push('<li class="found">נמצא og:type ✓</li>');
+                }
+                
+                // Check for Twitter Card tags
+                if (!data['Twitter Card']['twitter:card']) {
+                    recommendations.push('<li class="missing">חסר תג twitter:card</li>');
+                } else {
+                    recommendations.push('<li class="found">נמצא twitter:card ✓</li>');
+                }
+                
+                // Add image dimensions recommendation
+                if (data['Open Graph']['og:image']) {
+                    recommendations.push('<li>מומלץ שתמונת og:image תהיה בגודל 1200x630 פיקסלים</li>');
+                }
+                
+                recommendationsList.innerHTML = recommendations.join('');
+            }
+            
+            function showError(message) {
+                errorMessage.textContent = message;
+                errorMessage.style.display = 'block';
+                loading.style.display = 'none';
+                resultContainer.classList.remove('show');
+            }
+            
+            function isValidURL(string) {
+                try {
+                    new URL(string);
+                    return true;
+                } catch (_) {
+                    return false;
+                }
+            }
+        });
+    </script>
 </body>
 </html>
