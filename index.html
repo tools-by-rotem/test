@@ -294,119 +294,174 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // קוד התחלתי נשאר כפי שהיה
-            
-            function updatePreview(data, pageUrl) {
-                // Set title
-                const title = data['Open Graph']['og:title'] || 
-                              data['Twitter Card']['twitter:title'] || 
-                              data['Standard HTML']['title'] || 
-                              'אין כותרת';
-                previewTitle.textContent = title;
-                
-                // Set description
-                const description = data['Open Graph']['og:description'] || 
-                                    data['Twitter Card']['twitter:description'] || 
-                                    data['Standard HTML']['description'] || 
-                                    'אין תיאור';
-                previewDescription.textContent = description;
-                
-                // Set image
-                const imageUrl = data['Open Graph']['og:image'] || 
-                                 data['Twitter Card']['twitter:image'] || 
-                                 '/api/placeholder/800/400';
-                
-                // Make sure image URL is absolute
-                let fullImageUrl = imageUrl;
-                if (imageUrl && !imageUrl.startsWith('http') && !imageUrl.startsWith('/api/placeholder')) {
-                    if (imageUrl.startsWith('/')) {
-                        // Handle relative URLs that start with a slash
-                        const urlObj = new URL(pageUrl);
-                        fullImageUrl = `${urlObj.protocol}//${urlObj.host}${imageUrl}`;
-                    } else {
-                        // Handle relative URLs that don't start with a slash
-                        fullImageUrl = new URL(imageUrl, pageUrl).href;
-                    }
+javascriptCopydocument.addEventListener('DOMContentLoaded', function() {
+    const urlInput = document.getElementById('url-input');
+    const checkButton = document.getElementById('check-button');
+    const resultContainer = document.getElementById('result');
+    const errorMessage = document.getElementById('error-message');
+    const loading = document.getElementById('loading');
+    const rawDataContent = document.getElementById('raw-data-content');
+    const tagsContainer = document.getElementById('tags-container');
+    const recommendationsList = document.getElementById('recommendations-list');
+    
+    // Preview elements
+    const previewImg = document.getElementById('preview-img');
+    const previewTitle = document.getElementById('preview-title');
+    const previewDescription = document.getElementById('preview-description');
+    const previewUrl = document.getElementById('preview-url');
+    
+    // Using a CORS proxy to fetch the HTML content
+    const corsProxy = 'https://api.allorigins.win/get?url=';
+    
+    checkButton.addEventListener('click', checkOpenGraph);
+    urlInput.addEventListener('keypress', function(event) {
+        if (event.key === 'Enter') {
+            checkOpenGraph();
+        }
+    });
+    
+    function checkOpenGraph() {
+        const url = urlInput.value.trim();
+        
+        if (!url) {
+            showError('אנא הכנס כתובת URL');
+            return;
+        }
+        
+        if (!isValidURL(url)) {
+            showError('אנא הכנס כתובת URL תקינה');
+            return;
+        }
+        
+        // Reset UI
+        resultContainer.classList.remove('show');
+        errorMessage.style.display = 'none';
+        loading.style.display = 'block';
+        
+        // Fetch the URL content
+        fetch(corsProxy + encodeURIComponent(url))
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('נכשל בטעינת הדף');
                 }
-                
-                previewImg.src = fullImageUrl;
-                previewImg.onerror = function() {
-                    this.src = '/api/placeholder/800/400';
-                    this.alt = 'תמונה לא זמינה';
-                };
-                
-                // Set URL
-                const urlObj = new URL(pageUrl);
-                previewUrl.textContent = urlObj.hostname;
-            }
-            
-            function showRecommendations(data) {
-                recommendationsList.innerHTML = '';
-                const recommendations = [];
-                
-                // Check for missing critical Open Graph tags
-                if (!data['Open Graph']['og:title']) {
-                    recommendations.push('<li class="missing">חסר תג og:title</li>');
-                } else {
-                    recommendations.push('<li class="found">נמצא og:title ✓</li>');
-                }
-                
-                if (!data['Open Graph']['og:description']) {
-                    recommendations.push('<li class="missing">חסר תג og:description</li>');
-                } else {
-                    recommendations.push('<li class="found">נמצא og:description ✓</li>');
-                }
-                
-                if (!data['Open Graph']['og:image']) {
-                    recommendations.push('<li class="missing">חסר תג og:image</li>');
-                } else {
-                    recommendations.push('<li class="found">נמצא og:image ✓</li>');
-                }
-                
-                if (!data['Open Graph']['og:url']) {
-                    recommendations.push('<li class="missing">חסר תג og:url</li>');
-                } else {
-                    recommendations.push('<li class="found">נמצא og:url ✓</li>');
-                }
-                
-                if (!data['Open Graph']['og:type']) {
-                    recommendations.push('<li class="missing">חסר תג og:type</li>');
-                } else {
-                    recommendations.push('<li class="found">נמצא og:type ✓</li>');
-                }
-                
-                // Check for Twitter Card tags
-                if (!data['Twitter Card']['twitter:card']) {
-                    recommendations.push('<li class="missing">חסר תג twitter:card</li>');
-                } else {
-                    recommendations.push('<li class="found">נמצא twitter:card ✓</li>');
-                }
-                
-                // Add image dimensions recommendation
-                if (data['Open Graph']['og:image']) {
-                    recommendations.push('<li>מומלץ שתמונת og:image תהיה בגודל 1200x630 פיקסלים</li>');
-                }
-                
-                recommendationsList.innerHTML = recommendations.join('');
-            }
-            
-            function showError(message) {
-                errorMessage.textContent = message;
-                errorMessage.style.display = 'block';
+                return response.json();
+            })
+            .then(data => {
+                const htmlContent = data.contents;
+                parseOpenGraph(htmlContent, url);
                 loading.style.display = 'none';
-                resultContainer.classList.remove('show');
+                resultContainer.classList.add('show');
+            })
+            .catch(error => {
+                loading.style.display = 'none';
+                showError('שגיאה בטעינת הדף: ' + error.message);
+            });
+    }
+    
+    function parseOpenGraph(htmlContent, pageUrl) {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(htmlContent, 'text/html');
+        
+        // Get all meta tags
+        const metaTags = doc.querySelectorAll('meta');
+        
+        // Extract Open Graph data
+        const ogData = {
+            'og:title': getMetaContent(metaTags, 'og:title'),
+            'og:description': getMetaContent(metaTags, 'og:description'),
+            'og:image': getMetaContent(metaTags, 'og:image'),
+            'og:url': getMetaContent(metaTags, 'og:url'),
+            'og:type': getMetaContent(metaTags, 'og:type'),
+            'og:site_name': getMetaContent(metaTags, 'og:site_name')
+        };
+        
+        // Extract Twitter Card data
+        const twitterData = {
+            'twitter:card': getMetaContent(metaTags, 'twitter:card'),
+            'twitter:site': getMetaContent(metaTags, 'twitter:site'),
+            'twitter:title': getMetaContent(metaTags, 'twitter:title'),
+            'twitter:description': getMetaContent(metaTags, 'twitter:description'),
+            'twitter:image': getMetaContent(metaTags, 'twitter:image')
+        };
+        
+        // Fallback to standard HTML tags
+        const fallbackData = {
+            'title': doc.title || '',
+            'description': getMetaContent(metaTags, 'description'),
+            'canonical': getCanonicalUrl(doc)
+        };
+        
+        // Combine all data
+        const allData = {
+            'Open Graph': ogData,
+            'Twitter Card': twitterData,
+            'Standard HTML': fallbackData
+        };
+        
+        // Update the raw data display
+        rawDataContent.textContent = JSON.stringify(allData, null, 2);
+        
+        // Update the tags display
+        updateTagsDisplay(allData);
+        
+        // Update the preview
+        updatePreview(allData, pageUrl);
+        
+        // Show recommendations
+        showRecommendations(allData);
+    }
+    
+    function getMetaContent(metaTags, property) {
+        for (const tag of metaTags) {
+            const propertyAttr = tag.getAttribute('property') || tag.getAttribute('name');
+            if (propertyAttr === property) {
+                return tag.getAttribute('content') || '';
             }
+        }
+        return '';
+    }
+    
+    function getCanonicalUrl(doc) {
+        const canonicalLink = doc.querySelector('link[rel="canonical"]');
+        return canonicalLink ? canonicalLink.getAttribute('href') : '';
+    }
+    
+    // פונקציות שכבר הוגדרו בקוד הקיים
+    // updatePreview, showRecommendations, showError, isValidURL
+    
+    function updateTagsDisplay(data) {
+        tagsContainer.innerHTML = '';
+        
+        for (const category in data) {
+            const categoryData = data[category];
             
-            function isValidURL(string) {
-                try {
-                    new URL(string);
-                    return true;
-                } catch (_) {
-                    return false;
+            for (const tagName in categoryData) {
+                const tagValue = categoryData[tagName];
+                
+                if (tagValue) {
+                    const tagElement = document.createElement('div');
+                    tagElement.className = 'tag';
+                    
+                    const nameElement = document.createElement('div');
+                    nameElement.className = 'tag-name';
+                    nameElement.textContent = `${tagName}:`;
+                    
+                    const valueElement = document.createElement('div');
+                    valueElement.className = 'tag-value';
+                    valueElement.textContent = tagValue;
+                    
+                    tagElement.appendChild(nameElement);
+                    tagElement.appendChild(valueElement);
+                    tagsContainer.appendChild(tagElement);
                 }
             }
-        });
+        }
+        
+        if (tagsContainer.children.length === 0) {
+            tagsContainer.innerHTML = '<p>לא נמצאו תגיות Open Graph</p>';
+        }
+    }
+});
     </script>
 </body>
 </html>
