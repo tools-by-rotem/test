@@ -319,28 +319,32 @@ function checkUrl() {
     
     const startTime = Date.now();
     
-    // השתמש ב-CORS proxy שמחזיר גם את המידע על התגובה
-    const proxyUrl = 'https://api.allorigins.win/get?url=';
+    // השתמש בשירות CORS Anywhere כחלופה
+    const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
     
-    fetch(proxyUrl + encodeURIComponent(url))
-    .then(response => response.json())
-    .then(data => {
+    // שלח בקשת HEAD כדי לקבל רק כותרות ולא תוכן מלא
+    fetch(proxyUrl + url, { method: 'HEAD' })
+    .then(response => {
         const endTime = Date.now();
         const responseTimeValue = endTime - startTime;
         
-        // פרסר את כותרות התגובה מהתגובה של הפרוקסי
-        const statusCodeValue = data.status.http_code;
-        const statusTextValue = getStatusTextFromCode(statusCodeValue);
+        // קבל כותרות
+        const contentTypeValue = response.headers.get('content-type') || 'לא זמין';
+        const serverValue = response.headers.get('server') || 'לא זמין';
         
-        // נסה לחלץ כותרות מהתגובה
-        let contentTypeValue = 'לא זמין';
-        let serverValue = 'לא זמין';
-        let dateValue = formatDate(new Date());
+        // המר את תאריך השרת לתצוגה מקומית אם קיים
+        let dateValue;
+        const serverDate = response.headers.get('date');
+        if (serverDate) {
+            dateValue = formatDate(new Date(serverDate));
+        } else {
+            dateValue = formatDate(new Date());
+        }
         
-        // הצג תוצאה
+        // הצג תוצאה עם קוד סטטוס אמיתי
         displayResult(
-            statusCodeValue, 
-            statusTextValue, 
+            response.status, 
+            response.statusText, 
             url, 
             responseTimeValue, 
             contentTypeValue, 
@@ -349,17 +353,85 @@ function checkUrl() {
         );
         
         // שמור בהיסטוריה
-        saveToHistory(url, statusCodeValue, responseTimeValue);
+        saveToHistory(url, response.status, responseTimeValue);
     })
     .catch(error => {
         loader.style.display = 'none';
         
         if (error.message.includes('Failed to fetch')) {
-            showError('שגיאה: לא ניתן לגשת לכתובת URL זו. ייתכן שהשרת אינו זמין או שיש בעיית CORS.');
+            // נסה גישה חלופית עם jsonp.afeld.me
+            checkUrlWithJSONP(url);
         } else {
             showError('שגיאה: ' + error.message);
         }
     });
+}
+
+// פונקציה חלופית לבדיקת URL עם פרוקסי אחר
+function checkUrlWithJSONP(url) {
+    const startTime = Date.now();
+    const proxyUrl = 'https://jsonp.afeld.me/?url=';
+    
+    fetch(proxyUrl + encodeURIComponent(url))
+    .then(response => {
+        const endTime = Date.now();
+        const responseTimeValue = endTime - startTime;
+        
+        // הצג תוצאה
+        displayResult(
+            response.status, 
+            response.statusText, 
+            url, 
+            responseTimeValue, 
+            response.headers.get('content-type') || 'לא זמין', 
+            response.headers.get('server') || 'לא זמין', 
+            formatDate(new Date())
+        );
+        
+        // שמור בהיסטוריה
+        saveToHistory(url, response.status, responseTimeValue);
+    })
+    .catch(error => {
+        // נסיון אחרון - השתמש בשירות httpstat.us לבדיקה עקיפה
+        testWithFallback(url);
+    });
+}
+
+// גישת מפלט סופית - שימוש בשירות בדיקה פשוט יותר
+function testWithFallback(url) {
+    // נסה בדיקה מקומית בלבד עם XMLHttpRequest
+    const xhr = new XMLHttpRequest();
+    const startTime = Date.now();
+    
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4) {
+            const endTime = Date.now();
+            const responseTimeValue = endTime - startTime;
+            
+            if (xhr.status === 0) {
+                showError('לא ניתן לבדוק את הסטטוס: בעיית CORS או אבטחה. נסה URL אחר.');
+            } else {
+                displayResult(
+                    xhr.status,
+                    getStatusTextFromCode(xhr.status),
+                    url,
+                    responseTimeValue,
+                    xhr.getResponseHeader('Content-Type') || 'לא זמין',
+                    xhr.getResponseHeader('Server') || 'לא זמין',
+                    formatDate(new Date())
+                );
+                
+                saveToHistory(url, xhr.status, responseTimeValue);
+            }
+        }
+    };
+    
+    try {
+        xhr.open('HEAD', url, true);
+        xhr.send();
+    } catch (e) {
+        showError('שגיאה בבדיקה: ' + e.message);
+    }
 }
     
     function displayResult(statusCodeValue, statusTextValue, url, respTime, contType, serv, dt) {
