@@ -258,14 +258,9 @@
                 const startTime = Date.now();
                 
                 // השתמש ב-CORS proxy כדי לעקוף בעיות קורס
-                const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
+                const proxyUrl = 'const proxyUrl = 'https://api.allorigins.win/raw?url='';
                 
-                fetch(proxyUrl + url, {
-                    method: 'GET',
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                })
+        	     fetch(proxyUrl + encodeURIComponent(url))
                 .then(response => {
                     const endTime = Date.now();
                     const responseTimeValue = endTime - startTime;
