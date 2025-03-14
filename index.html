@@ -245,17 +245,26 @@
         .found {
             color: var(--success-color);
         }
+        .placeholder-rtl::placeholder {
+        direction: rtl;
+        text-align: right;
+        }
+    
+        .placeholder-rtl {
+        direction: ltr;
+        text-align: left;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>בודק Open Graph</h1>
-        <p class="description">הכנס כתובת URL כדי לבדוק את תגיות ה-Open Graph של האתר</p>
+        <p class="description">הזינו כתובת URL כדי לבדוק את תגיות ה-Open Graph של האתר</p>
         
         <div class="input-group">
-    <input type="url" id="url-input" placeholder="הכנס כתובת URL" dir="ltr">
-    <button id="check-button" class="check-button">בדוק</button>
-</div>
+    <input type="url" id="url-input" placeholder="הזינו כתובת URL" dir="ltr" class="placeholder-rtl">
+    <button id="check-button" class="check-button">בדיקה</button>
+    </div>
         
         <div id="error-message" class="error" style="display: none;"></div>
         
