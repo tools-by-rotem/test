@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="robots" content="noindex,nofollow">    
+    <meta name="robots" content="noindex,nofollow">  
     <title>בודק סטטוס HTTP</title>
     <style>
         * {
@@ -269,7 +269,15 @@
             const headers = response.headers;
             const contentTypeValue = headers.get('content-type') || 'לא זמין';
             const serverValue = headers.get('server') || 'לא זמין';
-            const dateValue = headers.get('date') || new Date().toUTCString();
+            
+            // המר את תאריך השרת לתצוגה מקומית אם קיים
+            let dateValue;
+            const serverDate = headers.get('date');
+            if (serverDate) {
+                dateValue = formatDate(new Date(serverDate));
+            } else {
+                dateValue = formatDate(new Date());
+            }
             
             // הצג תוצאה
             displayResult(
@@ -332,20 +340,37 @@
         responseTime.textContent = '-';
         contentType.textContent = '-';
         server.textContent = '-';
-        date.textContent = new Date().toLocaleString();
+        date.textContent = formatDate(new Date());
     }
     
     function saveToHistory(url, status, respTime) {
         // קבל היסטוריה קיימת או צור חדשה
         const history = JSON.parse(localStorage.getItem('httpCheckerHistory') || '[]');
         
-        // הוסף בדיקה חדשה בתחילת המערך
-        history.unshift({
-            url: url,
-            status: status,
-            responseTime: respTime,
-            timestamp: new Date().toISOString()
-        });
+        // בדוק אם URL כבר קיים בהיסטוריה (למניעת שכפולים)
+        const existingIndex = history.findIndex(item => item.url === url);
+        
+        if (existingIndex !== -1) {
+            // עדכן את הרשומה הקיימת
+            history[existingIndex] = {
+                url: url,
+                status: status,
+                responseTime: respTime,
+                timestamp: new Date().toISOString()
+            };
+            
+            // העבר אותה לתחילת הרשימה
+            const item = history.splice(existingIndex, 1)[0];
+            history.unshift(item);
+        } else {
+            // הוסף בדיקה חדשה בתחילת המערך
+            history.unshift({
+                url: url,
+                status: status,
+                responseTime: respTime,
+                timestamp: new Date().toISOString()
+            });
+        }
         
         // שמור רק 10 הבדיקות האחרונות
         const limitedHistory = history.slice(0, 10);
