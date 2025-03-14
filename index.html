@@ -299,71 +299,68 @@
         }
     });
     
-    function checkUrl() {
-        const url = urlInput.value.trim();
-        
-        if (!url) {
-            showError('נא להזין כתובת URL');
-            return;
-        }
-        
-        if (!url.startsWith('http://') && !url.startsWith('https://')) {
-            showError('כתובת URL חייבת להתחיל ב-http:// או https://');
-            return;
-        }
-        
-        // הסתר תוצאה קודמת והצג טעינה
-        result.style.display = 'none';
-        loader.style.display = 'block';
-        
-        const startTime = Date.now();
-        
-        // השתמש ב-CORS proxy כדי לעקוף בעיות קורס
-        const proxyUrl = 'https://api.allorigins.win/raw?url=';
-        
-        fetch(proxyUrl + encodeURIComponent(url))
-        .then(response => {
-            const endTime = Date.now();
-            const responseTimeValue = endTime - startTime;
-            
-            // קבל כותרות
-            const headers = response.headers;
-            const contentTypeValue = headers.get('content-type') || 'לא זמין';
-            const serverValue = headers.get('server') || 'לא זמין';
-            
-            // המר את תאריך השרת לתצוגה מקומית אם קיים
-            let dateValue;
-            const serverDate = headers.get('date');
-            if (serverDate) {
-                dateValue = formatDate(new Date(serverDate));
-            } else {
-                dateValue = formatDate(new Date());
-            }
-            
-            // הצג תוצאה
-            displayResult(
-                response.status, 
-                response.statusText, 
-                url, 
-                responseTimeValue, 
-                contentTypeValue, 
-                serverValue, 
-                dateValue
-            );
-            
-            // שמור בהיסטוריה
-            saveToHistory(url, response.status, responseTimeValue);
-        })
-        .catch(error => {
-            loader.style.display = 'none';
-            
-            if (error.message.includes('Failed to fetch')) {
-                showError('שגיאה: לא ניתן לגשת לכתובת URL זו. ייתכן שהשרת אינו זמין או שיש בעיית CORS.');
-            } else {
-                showError('שגיאה: ' + error.message);
-            }
-        });
+    // החלף את הפונקציה checkUrl המקורית בפונקציה זו
+function checkUrl() {
+    const url = urlInput.value.trim();
+    
+    if (!url) {
+        showError('נא להזין כתובת URL');
+        return;
     }
+    
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        showError('כתובת URL חייבת להתחיל ב-http:// או https://');
+        return;
+    }
+    
+    // הסתר תוצאה קודמת והצג טעינה
+    result.style.display = 'none';
+    loader.style.display = 'block';
+    
+    const startTime = Date.now();
+    
+    // השתמש ב-CORS proxy שמחזיר גם את המידע על התגובה
+    const proxyUrl = 'https://api.allorigins.win/get?url=';
+    
+    fetch(proxyUrl + encodeURIComponent(url))
+    .then(response => response.json())
+    .then(data => {
+        const endTime = Date.now();
+        const responseTimeValue = endTime - startTime;
+        
+        // פרסר את כותרות התגובה מהתגובה של הפרוקסי
+        const statusCodeValue = data.status.http_code;
+        const statusTextValue = getStatusTextFromCode(statusCodeValue);
+        
+        // נסה לחלץ כותרות מהתגובה
+        let contentTypeValue = 'לא זמין';
+        let serverValue = 'לא זמין';
+        let dateValue = formatDate(new Date());
+        
+        // הצג תוצאה
+        displayResult(
+            statusCodeValue, 
+            statusTextValue, 
+            url, 
+            responseTimeValue, 
+            contentTypeValue, 
+            serverValue, 
+            dateValue
+        );
+        
+        // שמור בהיסטוריה
+        saveToHistory(url, statusCodeValue, responseTimeValue);
+    })
+    .catch(error => {
+        loader.style.display = 'none';
+        
+        if (error.message.includes('Failed to fetch')) {
+            showError('שגיאה: לא ניתן לגשת לכתובת URL זו. ייתכן שהשרת אינו זמין או שיש בעיית CORS.');
+        } else {
+            showError('שגיאה: ' + error.message);
+        }
+    });
+}
     
     function displayResult(statusCodeValue, statusTextValue, url, respTime, contType, serv, dt) {
         loader.style.display = 'none';
