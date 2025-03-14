@@ -317,62 +317,204 @@ function checkUrl() {
     result.style.display = 'none';
     loader.style.display = 'block';
     
-    // להשתמש בcross-fetch במקום fetch רגיל
-    checkWithXHR(url);
+    // שימוש בשירות status.js שמספק נתוני סטטוס באמצעות JSONP
+    checkWithStatusJS(url);
 }
 
-// בדיקה באמצעות XMLHttpRequest עם טיפול בשגיאות משופר
-function checkWithXHR(url) {
-    const xhr = new XMLHttpRequest();
+// פונקציה שמשתמשת בשירות חיצוני (לא דורש חשבון או הרשמה)
+function checkWithStatusJS(url) {
     const startTime = Date.now();
     
-    // מטפל בזמן חריגה
-    const timeoutTimer = setTimeout(() => {
-        xhr.abort();
+    // יצירת אלמנט script דינמי
+    const script = document.createElement('script');
+    
+    // הגדרת callback גלובלי (מחוץ לפונקציה)
+    window.statusCallback = function(data) {
+        const endTime = Date.now();
+        const responseTimeValue = endTime - startTime;
+        
         loader.style.display = 'none';
-        showError('פסק זמן: השרת לא הגיב תוך 10 שניות');
+        
+        if (data.error) {
+            showError('שגיאה: ' + data.error);
+            return;
+        }
+        
+        // הצג את התוצאות
+        displayResult(
+            data.status || 0,
+            data.statusText || getStatusTextFromCode(data.status || 0),
+            url,
+            responseTimeValue,
+            data.contentType || 'לא זמין',
+            data.server || 'לא זמין',
+            formatDate(new Date())
+        );
+        
+        // שמור בהיסטוריה
+        saveToHistory(url, data.status || 0, responseTimeValue);
+        
+        // נקה את האלמנט script
+        document.body.removeChild(script);
+        
+        // נקה את הפונקציה הגלובלית
+        delete window.statusCallback;
+    };
+    
+    // הגדר טיימאאוט למקרה שהשירות לא עונה
+    const timeoutId = setTimeout(() => {
+        if (window.statusCallback) {
+            window.statusCallback({
+                error: 'פסק זמן: השירות לא הגיב תוך 10 שניות'
+            });
+        }
     }, 10000);
     
-    xhr.onreadystatechange = function() {
-        if (xhr.readyState === 4) {
-            clearTimeout(timeoutTimer);
+    // השתמש בשירות שמאפשר בדיקת HTTP status דרך JSONP
+    // נשתמש בשירות הציבורי httpbin.org שמאפשר JSONP
+    script.src = `https://httpbin.org/status/${url}?callback=statusCallback`;
+    
+    // טיפול בשגיאות טעינת הסקריפט
+    script.onerror = function() {
+        clearTimeout(timeoutId);
+        loader.style.display = 'none';
+        
+        // במקרה של שגיאה, ננסה שיטה אחרת
+        checkWithFetchAPI(url);
+        
+        if (document.body.contains(script)) {
+            document.body.removeChild(script);
+        }
+        delete window.statusCallback;
+    };
+    
+    // הוספת הסקריפט לדף
+    document.body.appendChild(script);
+}
+
+// גישה חלופית עם fetch + no-cors (מוגבלת מאוד)
+function checkWithFetchAPI(url) {
+    const startTime = Date.now();
+    
+    // ניסיון עם fetch במצב no-cors (יחזיר רק אם הסטטוס הוא 200, אחרת יכשל)
+    fetch(url, { mode: 'no-cors' })
+        .then(response => {
             const endTime = Date.now();
             const responseTimeValue = endTime - startTime;
             
-            loader.style.display = 'none';
+            // במצב no-cors, תמיד יחזור response.type = "opaque" וסטטוס 0
+            // אם הגענו לכאן, כנראה שהאתר קיים ומגיב (אבל לא נדע את הסטטוס המדויק)
             
-            // במקרה של שגיאת CORS או אחרת
-            if (xhr.status === 0) {
-                // נסה את הגישה השנייה עם פיענוח סטטוס
-                inferStatusWithImage(url);
-                return;
-            }
-            
-            // הצלחנו לקבל את הסטטוס
             displayResult(
-                xhr.status,
-                xhr.statusText || getStatusTextFromCode(xhr.status),
+                200, // נניח 200 אם הבקשה הצליחה
+                'OK (משוער)',
                 url,
                 responseTimeValue,
-                xhr.getResponseHeader('Content-Type') || 'לא זמין',
-                xhr.getResponseHeader('Server') || 'לא זמין',
+                'לא זמין (בגלל מגבלות CORS)',
+                'לא זמין (בגלל מגבלות CORS)',
                 formatDate(new Date())
             );
             
-            saveToHistory(url, xhr.status, responseTimeValue);
-        }
+            saveToHistory(url, 200, responseTimeValue);
+        })
+        .catch(error => {
+            // אם נכשל, ננסה את הגישה האחרונה
+            checkWithImage(url);
+        });
+}
+
+// גישה חלופית עם טעינת תמונה
+function checkWithImage(url) {
+    const startTime = Date.now();
+    const img = new Image();
+    
+    // מגדיר טיימאאוט
+    const timeoutId = setTimeout(() => {
+        loader.style.display = 'none';
+        // אם התמונה לא נטענה תוך 5 שניות, סביר להניח שהשרת לא זמין
+        displayResult(
+            503,
+            'Service Unavailable (משוער)',
+            url,
+            5000,
+            'לא זמין',
+            'לא זמין',
+            formatDate(new Date())
+        );
+        saveToHistory(url, 503, 5000);
+    }, 5000);
+    
+    img.onload = function() {
+        clearTimeout(timeoutId);
+        const endTime = Date.now();
+        const responseTimeValue = endTime - startTime;
+        loader.style.display = 'none';
+        
+        // אם התמונה נטענת, הסטטוס הוא 200
+        displayResult(
+            200,
+            'OK (משוער)',
+            url,
+            responseTimeValue,
+            'לא זמין',
+            'לא זמין',
+            formatDate(new Date())
+        );
+        saveToHistory(url, 200, responseTimeValue);
     };
     
-    try {
-        xhr.open('HEAD', url, true);
-        // נסה לעקוף מגבלות CORS
-        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-        xhr.send();
-    } catch (e) {
-        clearTimeout(timeoutTimer);
+    img.onerror = function() {
+        clearTimeout(timeoutId);
+        const endTime = Date.now();
+        const responseTimeValue = endTime - startTime;
         loader.style.display = 'none';
-        // במקרה של שגיאה, נסה את הגישה החלופית
-        inferStatusWithImage(url);
+        
+        // אם יש שגיאה בטעינת התמונה, ננסה להשתמש בגישה הבאה
+        // זה יהיה המקרה הכי נפוץ כי רוב האתרים לא מחזירים תמונות
+        
+        // הוספת הודעה על מגבלות CORS בתצוגת התוצאה
+        displayResult(
+            0, // קוד לא ידוע
+            'לא ניתן לקבוע בוודאות (מגבלות אבטחה)',
+            url,
+            responseTimeValue,
+            'לא זמין (מגבלות CORS)',
+            'לא זמין (מגבלות CORS)',
+            formatDate(new Date())
+        );
+        
+        // הוסף הודעה מיוחדת על המגבלות
+        const corsMessage = document.createElement('div');
+        corsMessage.className = 'detail-item';
+        corsMessage.innerHTML = '<strong>הערה חשובה:</strong> בגלל מגבלות אבטחה של הדפדפן (CORS), לא ניתן לקבל את הסטטוס המדויק לאתרים חיצוניים ללא שרת backend. לתוצאות מדויקות, נדרש להשתמש בפתרון צד-שרת.';
+        document.querySelector('.details').appendChild(corsMessage);
+        
+        saveToHistory(url, 0, responseTimeValue);
+    };
+    
+    // נסה לטעון את האתר כתמונה
+    img.src = url;
+}
+
+// שיפור פונקציית showError
+function showError(message) {
+    loader.style.display = 'none';
+    result.style.display = 'block';
+    result.className = 'result error';
+    statusText.textContent = message;
+    statusCode.textContent = '';
+    urlText.textContent = urlInput.value;
+    responseTime.textContent = '-';
+    contentType.textContent = '-';
+    server.textContent = '-';
+    date.textContent = formatDate(new Date());
+    
+    // הוסף הערה על מגבלות CORS אם רלוונטי
+    if (message.includes('CORS') || message.includes('שגיאה')) {
+        const corsNote = document.createElement('div');
+        corsNote.className = 'details';
+        corsNote.innerHTML = '<div class="detail-item"><strong>הערה חשובה:</strong> בגלל מגבלות אבטחה של הדפדפן (CORS), כלי זה מוגבל ביכולת לבדוק אתרים שאינם מקור זה. לפתרון מלא נדרש שרת backend.</div>';
+        result.appendChild(corsNote);
     }
 }
 
