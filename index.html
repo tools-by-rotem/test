@@ -215,244 +215,241 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const urlInput = document.getElementById('urlInput');
-            const checkButton = document.getElementById('checkButton');
-            const result = document.getElementById('result');
-            const statusText = document.getElementById('statusText');
-            const statusCode = document.getElementById('statusCode');
-            const urlText = document.getElementById('urlText');
-            const responseTime = document.getElementById('responseTime');
-            const contentType = document.getElementById('contentType');
-            const server = document.getElementById('server');
-            const date = document.getElementById('date');
-            const loader = document.getElementById('loader');
-            const historyList = document.getElementById('historyList');
+    const urlInput = document.getElementById('urlInput');
+    const checkButton = document.getElementById('checkButton');
+    const result = document.getElementById('result');
+    const statusText = document.getElementById('statusText');
+    const statusCode = document.getElementById('statusCode');
+    const urlText = document.getElementById('urlText');
+    const responseTime = document.getElementById('responseTime');
+    const contentType = document.getElementById('contentType');
+    const server = document.getElementById('server');
+    const date = document.getElementById('date');
+    const loader = document.getElementById('loader');
+    const historyList = document.getElementById('historyList');
+    
+    // טען היסטוריה מהזיכרון המקומי
+    loadHistory();
+    
+    checkButton.addEventListener('click', checkUrl);
+    urlInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            checkUrl();
+        }
+    });
+    
+    function checkUrl() {
+        const url = urlInput.value.trim();
+        
+        if (!url) {
+            showError('נא להזין כתובת URL');
+            return;
+        }
+        
+        if (!url.startsWith('http://') && !url.startsWith('https://')) {
+            showError('כתובת URL חייבת להתחיל ב-http:// או https://');
+            return;
+        }
+        
+        // הסתר תוצאה קודמת והצג טעינה
+        result.style.display = 'none';
+        loader.style.display = 'block';
+        
+        const startTime = Date.now();
+        
+        // השתמש ב-CORS proxy כדי לעקוף בעיות קורס
+        const proxyUrl = 'https://api.allorigins.win/raw?url=';
+        
+        fetch(proxyUrl + encodeURIComponent(url))
+        .then(response => {
+            const endTime = Date.now();
+            const responseTimeValue = endTime - startTime;
             
-            // טען היסטוריה מהזיכרון המקומי
-            loadHistory();
+            // קבל כותרות
+            const headers = response.headers;
+            const contentTypeValue = headers.get('content-type') || 'לא זמין';
+            const serverValue = headers.get('server') || 'לא זמין';
+            const dateValue = headers.get('date') || new Date().toUTCString();
             
-            checkButton.addEventListener('click', checkUrl);
-            urlInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    checkUrl();
-                }
-            });
+            // הצג תוצאה
+            displayResult(
+                response.status, 
+                response.statusText, 
+                url, 
+                responseTimeValue, 
+                contentTypeValue, 
+                serverValue, 
+                dateValue
+            );
             
-            function checkUrl() {
-                const url = urlInput.value.trim();
-                
-                if (!url) {
-                    showError('נא להזין כתובת URL');
-                    return;
-                }
-                
-                if (!url.startsWith('http://') && !url.startsWith('https://')) {
-                    showError('כתובת URL חייבת להתחיל ב-http:// או https://');
-                    return;
-                }
-                
-                // הסתר תוצאה קודמת והצג טעינה
-                result.style.display = 'none';
-                loader.style.display = 'block';
-                
-                const startTime = Date.now();
-                
-                // השתמש ב-CORS proxy כדי לעקוף בעיות קורס
-                const proxyUrl = 'const proxyUrl = 'https://api.allorigins.win/raw?url='';
-                
-        	     fetch(proxyUrl + encodeURIComponent(url))
-                .then(response => {
-                    const endTime = Date.now();
-                    const responseTimeValue = endTime - startTime;
-                    
-                    // קבל כותרות
-                    const headers = response.headers;
-                    const contentTypeValue = headers.get('content-type') || 'לא זמין';
-                    const serverValue = headers.get('server') || 'לא זמין';
-                    const dateValue = headers.get('date') || new Date().toUTCString();
-                    
-                    // הצג תוצאה
-                    displayResult(
-                        response.status, 
-                        response.statusText, 
-                        url, 
-                        responseTimeValue, 
-                        contentTypeValue, 
-                        serverValue, 
-                        dateValue
-                    );
-                    
-                    // שמור בהיסטוריה
-                    saveToHistory(url, response.status, responseTimeValue);
-                })
-                .catch(error => {
-                    loader.style.display = 'none';
-                    
-                    if (error.message.includes('Failed to fetch')) {
-                        showError('שגיאה: לא ניתן לגשת לכתובת URL זו. ייתכן שהשרת אינו זמין או שיש בעיית CORS.');
-                    } else {
-                        showError('שגיאה: ' + error.message);
-                    }
-                });
-            }
+            // שמור בהיסטוריה
+            saveToHistory(url, response.status, responseTimeValue);
+        })
+        .catch(error => {
+            loader.style.display = 'none';
             
-            function displayResult(statusCode, statusText, url, respTime, contType, serv, dt) {
-                loader.style.display = 'none';
-                result.style.display = 'block';
-                
-                // קבע קלאס CSS לפי קוד סטטוס
-                result.className = 'result';
-                if (statusCode >= 200 && statusCode < 300) {
-                    result.classList.add('success');
-                } else if (statusCode >= 300 && statusCode < 400) {
-                    result.classList.add('info');
-                } else if (statusCode >= 400 && statusCode < 500) {
-                    result.classList.add('warning');
-                } else {
-                    result.classList.add('error');
-                }
-                
-                // עדכן את הטקסט בתוצאה
-                statusCode.textContent = statusCode;
-                statusText.textContent = statusText || getStatusTextFromCode(statusCode);
-                urlText.textContent = url;
-                responseTime.textContent = respTime;
-                contentType.textContent = contType;
-                server.textContent = serv;
-                date.textContent = dt;
-            }
-            
-            function showError(message) {
-                loader.style.display = 'none';
-                result.style.display = 'block';
-                result.className = 'result error';
-                statusText.textContent = 'שגיאה';
-                statusCode.textContent = '';
-                urlText.textContent = urlInput.value;
-                responseTime.textContent = '-';
-                contentType.textContent = '-';
-                server.textContent = '-';
-                date.textContent = new Date().toLocaleString();
-                
-                // הצג את הודעת השגיאה
-                statusText.textContent = message;
-            }
-            
-            function saveToHistory(url, status, respTime) {
-                // קבל היסטוריה קיימת או צור חדשה
-                const history = JSON.parse(localStorage.getItem('httpCheckerHistory') || '[]');
-                
-                // הוסף בדיקה חדשה בתחילת המערך
-                history.unshift({
-                    url: url,
-                    status: status,
-                    responseTime: respTime,
-                    timestamp: new Date().toISOString()
-                });
-                
-                // שמור רק 10 הבדיקות האחרונות
-                const limitedHistory = history.slice(0, 10);
-                
-                // שמור בזיכרון המקומי
-                localStorage.setItem('httpCheckerHistory', JSON.stringify(limitedHistory));
-                
-                // עדכן את תצוגת ההיסטוריה
-                loadHistory();
-            }
-            
-            function loadHistory() {
-                const history = JSON.parse(localStorage.getItem('httpCheckerHistory') || '[]');
-                
-                if (history.length === 0) {
-                    historyList.innerHTML = '<li style="padding: 10px; color: #999;">אין היסטוריית בדיקות</li>';
-                    return;
-                }
-                
-                historyList.innerHTML = '';
-                
-                history.forEach(item => {
-                    const li = document.createElement('li');
-                    li.className = 'history-item';
-                    
-                    const statusClass = getStatusClass(item.status);
-                    
-                    const statusBadge = document.createElement('span');
-                    statusBadge.className = `status-badge ${statusClass}`;
-                    statusBadge.textContent = item.status;
-                    
-                    const urlSpan = document.createElement('span');
-                    urlSpan.textContent = truncateUrl(item.url);
-                    urlSpan.setAttribute('title', item.url);
-                    
-                    const timeSpan = document.createElement('span');
-                    timeSpan.className = 'timestamp';
-                    timeSpan.textContent = formatDate(new Date(item.timestamp));
-                    
-                    // הוסף קישור לבדיקה מחדש
-                    li.appendChild(urlSpan);
-                    li.appendChild(statusBadge);
-                    li.appendChild(timeSpan);
-                    
-                    // הוסף אירוע לחיצה לטעינת הכתובת שוב
-                    li.addEventListener('click', function() {
-                        urlInput.value = item.url;
-                        checkUrl();
-                    });
-                    
-                    historyList.appendChild(li);
-                });
-            }
-            
-            function getStatusClass(status) {
-                if (status >= 200 && status < 300) return 'status-2xx';
-                if (status >= 300 && status < 400) return 'status-3xx';
-                if (status >= 400 && status < 500) return 'status-4xx';
-                if (status >= 500) return 'status-5xx';
-                return '';
-            }
-            
-            function truncateUrl(url) {
-                // הסר פרוטוקול ומקצר אם ארוך מדי
-                const noProtocol = url.replace(/^https?:\/\//, '');
-                if (noProtocol.length > 30) {
-                    return noProtocol.substring(0, 27) + '...';
-}
-                return noProtocol;
-            }
-            
-            function formatDate(date) {
-                // המר תאריך לפורמט קריא
-                return date.toLocaleString('he-IL', {
-                    year: 'numeric',
-                    month: '2-digit',
-                    day: '2-digit',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                });
-            }
-            
-            function getStatusTextFromCode(code) {
-                // מחזיר תיאור טקסטואלי לקוד סטטוס
-                const statusTexts = {
-                    200: 'OK',
-                    201: 'Created',
-                    204: 'No Content',
-                    301: 'Moved Permanently',
-                    302: 'Found',
-                    304: 'Not Modified',
-                    400: 'Bad Request',
-                    401: 'Unauthorized',
-                    403: 'Forbidden',
-                    404: 'Not Found',
-                    500: 'Internal Server Error',
-                    501: 'Not Implemented',
-                    502: 'Bad Gateway',
-                    503: 'Service Unavailable'
-                };
-                
-                return statusTexts[code] || 'Unknown Status';
+            if (error.message.includes('Failed to fetch')) {
+                showError('שגיאה: לא ניתן לגשת לכתובת URL זו. ייתכן שהשרת אינו זמין או שיש בעיית CORS.');
+            } else {
+                showError('שגיאה: ' + error.message);
             }
         });
+    }
+    
+    function displayResult(statusCodeValue, statusTextValue, url, respTime, contType, serv, dt) {
+        loader.style.display = 'none';
+        result.style.display = 'block';
+        
+        // קבע קלאס CSS לפי קוד סטטוס
+        result.className = 'result';
+        if (statusCodeValue >= 200 && statusCodeValue < 300) {
+            result.classList.add('success');
+        } else if (statusCodeValue >= 300 && statusCodeValue < 400) {
+            result.classList.add('info');
+        } else if (statusCodeValue >= 400 && statusCodeValue < 500) {
+            result.classList.add('warning');
+        } else {
+            result.classList.add('error');
+        }
+        
+        // עדכן את הטקסט בתוצאה
+        statusCode.textContent = statusCodeValue;
+        statusText.textContent = statusTextValue || getStatusTextFromCode(statusCodeValue);
+        urlText.textContent = url;
+        responseTime.textContent = respTime;
+        contentType.textContent = contType;
+        server.textContent = serv;
+        date.textContent = dt;
+    }
+    
+    function showError(message) {
+        loader.style.display = 'none';
+        result.style.display = 'block';
+        result.className = 'result error';
+        statusText.textContent = message;
+        statusCode.textContent = '';
+        urlText.textContent = urlInput.value;
+        responseTime.textContent = '-';
+        contentType.textContent = '-';
+        server.textContent = '-';
+        date.textContent = new Date().toLocaleString();
+    }
+    
+    function saveToHistory(url, status, respTime) {
+        // קבל היסטוריה קיימת או צור חדשה
+        const history = JSON.parse(localStorage.getItem('httpCheckerHistory') || '[]');
+        
+        // הוסף בדיקה חדשה בתחילת המערך
+        history.unshift({
+            url: url,
+            status: status,
+            responseTime: respTime,
+            timestamp: new Date().toISOString()
+        });
+        
+        // שמור רק 10 הבדיקות האחרונות
+        const limitedHistory = history.slice(0, 10);
+        
+        // שמור בזיכרון המקומי
+        localStorage.setItem('httpCheckerHistory', JSON.stringify(limitedHistory));
+        
+        // עדכן את תצוגת ההיסטוריה
+        loadHistory();
+    }
+    
+    function loadHistory() {
+        const history = JSON.parse(localStorage.getItem('httpCheckerHistory') || '[]');
+        
+        if (history.length === 0) {
+            historyList.innerHTML = '<li style="padding: 10px; color: #999;">אין היסטוריית בדיקות</li>';
+            return;
+        }
+        
+        historyList.innerHTML = '';
+        
+        history.forEach(item => {
+            const li = document.createElement('li');
+            li.className = 'history-item';
+            
+            const statusClass = getStatusClass(item.status);
+            
+            const statusBadge = document.createElement('span');
+            statusBadge.className = `status-badge ${statusClass}`;
+            statusBadge.textContent = item.status;
+            
+            const urlSpan = document.createElement('span');
+            urlSpan.textContent = truncateUrl(item.url);
+            urlSpan.setAttribute('title', item.url);
+            
+            const timeSpan = document.createElement('span');
+            timeSpan.className = 'timestamp';
+            timeSpan.textContent = formatDate(new Date(item.timestamp));
+            
+            // הוסף קישור לבדיקה מחדש
+            li.appendChild(urlSpan);
+            li.appendChild(statusBadge);
+            li.appendChild(timeSpan);
+            
+            // הוסף אירוע לחיצה לטעינת הכתובת שוב
+            li.addEventListener('click', function() {
+                urlInput.value = item.url;
+                checkUrl();
+            });
+            
+            historyList.appendChild(li);
+        });
+    }
+    
+    function getStatusClass(status) {
+        if (status >= 200 && status < 300) return 'status-2xx';
+        if (status >= 300 && status < 400) return 'status-3xx';
+        if (status >= 400 && status < 500) return 'status-4xx';
+        if (status >= 500) return 'status-5xx';
+        return '';
+    }
+    
+    function truncateUrl(url) {
+        // הסר פרוטוקול ומקצר אם ארוך מדי
+        const noProtocol = url.replace(/^https?:\/\//, '');
+        if (noProtocol.length > 30) {
+            return noProtocol.substring(0, 27) + '...';
+        }
+        return noProtocol;
+    }
+    
+    function formatDate(date) {
+        // המר תאריך לפורמט קריא
+        return date.toLocaleString('he-IL', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    }
+    
+    function getStatusTextFromCode(code) {
+        // מחזיר תיאור טקסטואלי לקוד סטטוס
+        const statusTexts = {
+            200: 'OK',
+            201: 'Created',
+            204: 'No Content',
+            301: 'Moved Permanently',
+            302: 'Found',
+            304: 'Not Modified',
+            400: 'Bad Request',
+            401: 'Unauthorized',
+            403: 'Forbidden',
+            404: 'Not Found',
+            500: 'Internal Server Error',
+            501: 'Not Implemented',
+            502: 'Bad Gateway',
+            503: 'Service Unavailable'
+        };
+        
+        return statusTexts[code] || 'Unknown Status';
+    }
+});
     </script>
 </body>
 </html>
