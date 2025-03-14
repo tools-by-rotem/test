@@ -317,57 +317,194 @@ function checkUrl() {
     result.style.display = 'none';
     loader.style.display = 'block';
     
-    const startTime = Date.now();
-    
-    // השתמש בשירות CORS Anywhere כחלופה
-    const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
-    
-    // שלח בקשת HEAD כדי לקבל רק כותרות ולא תוכן מלא
-    fetch(proxyUrl + url, { method: 'HEAD' })
-    .then(response => {
-        const endTime = Date.now();
-        const responseTimeValue = endTime - startTime;
-        
-        // קבל כותרות
-        const contentTypeValue = response.headers.get('content-type') || 'לא זמין';
-        const serverValue = response.headers.get('server') || 'לא זמין';
-        
-        // המר את תאריך השרת לתצוגה מקומית אם קיים
-        let dateValue;
-        const serverDate = response.headers.get('date');
-        if (serverDate) {
-            dateValue = formatDate(new Date(serverDate));
-        } else {
-            dateValue = formatDate(new Date());
-        }
-        
-        // הצג תוצאה עם קוד סטטוס אמיתי
-        displayResult(
-            response.status, 
-            response.statusText, 
-            url, 
-            responseTimeValue, 
-            contentTypeValue, 
-            serverValue, 
-            dateValue
-        );
-        
-        // שמור בהיסטוריה
-        saveToHistory(url, response.status, responseTimeValue);
-    })
-    .catch(error => {
-        loader.style.display = 'none';
-        
-        if (error.message.includes('Failed to fetch')) {
-            // נסה גישה חלופית עם jsonp.afeld.me
-            checkUrlWithJSONP(url);
-        } else {
-            showError('שגיאה: ' + error.message);
-        }
-    });
+    // להשתמש בcross-fetch במקום fetch רגיל
+    checkWithXHR(url);
 }
 
-// פונקציה חלופית לבדיקת URL עם פרוקסי אחר
+// בדיקה באמצעות XMLHttpRequest עם טיפול בשגיאות משופר
+function checkWithXHR(url) {
+    const xhr = new XMLHttpRequest();
+    const startTime = Date.now();
+    
+    // מטפל בזמן חריגה
+    const timeoutTimer = setTimeout(() => {
+        xhr.abort();
+        loader.style.display = 'none';
+        showError('פסק זמן: השרת לא הגיב תוך 10 שניות');
+    }, 10000);
+    
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4) {
+            clearTimeout(timeoutTimer);
+            const endTime = Date.now();
+            const responseTimeValue = endTime - startTime;
+            
+            loader.style.display = 'none';
+            
+            // במקרה של שגיאת CORS או אחרת
+            if (xhr.status === 0) {
+                // נסה את הגישה השנייה עם פיענוח סטטוס
+                inferStatusWithImage(url);
+                return;
+            }
+            
+            // הצלחנו לקבל את הסטטוס
+            displayResult(
+                xhr.status,
+                xhr.statusText || getStatusTextFromCode(xhr.status),
+                url,
+                responseTimeValue,
+                xhr.getResponseHeader('Content-Type') || 'לא זמין',
+                xhr.getResponseHeader('Server') || 'לא זמין',
+                formatDate(new Date())
+            );
+            
+            saveToHistory(url, xhr.status, responseTimeValue);
+        }
+    };
+    
+    try {
+        xhr.open('HEAD', url, true);
+        // נסה לעקוף מגבלות CORS
+        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+        xhr.send();
+    } catch (e) {
+        clearTimeout(timeoutTimer);
+        loader.style.display = 'none';
+        // במקרה של שגיאה, נסה את הגישה החלופית
+        inferStatusWithImage(url);
+    }
+}
+
+// גישה חלופית שמנסה להסיק את הסטטוס דרך טעינת תמונה
+function inferStatusWithImage(url) {
+    const startTime = Date.now();
+    const img = new Image();
+    
+    // הגדר זמן חריגה
+    const timeoutTimer = setTimeout(() => {
+        loader.style.display = 'none';
+        // אם התמונה לא נטענה תוך 10 שניות, סביר להניח שהשרת לא זמין
+        displayResult(
+            503,
+            'Service Unavailable (inferred)',
+            url,
+            10000,
+            'לא זמין',
+            'לא זמין',
+            formatDate(new Date())
+        );
+        saveToHistory(url, 503, 10000);
+    }, 10000);
+    
+    img.onload = function() {
+        clearTimeout(timeoutTimer);
+        const endTime = Date.now();
+        const responseTimeValue = endTime - startTime;
+        loader.style.display = 'none';
+        
+        // אם התמונה נטענת, הסטטוס הוא 200
+        displayResult(
+            200,
+            'OK (inferred)',
+            url,
+            responseTimeValue,
+            'לא זמין',
+            'לא זמין',
+            formatDate(new Date())
+        );
+        saveToHistory(url, 200, responseTimeValue);
+    };
+    
+    img.onerror = function() {
+        clearTimeout(timeoutTimer);
+        const endTime = Date.now();
+        const responseTimeValue = endTime - startTime;
+        loader.style.display = 'none';
+        
+        // אם יש שגיאה בטעינת התמונה, ננסה לנחש אם זה 404 או סטטוס אחר
+        // שים לב שזה ניחוש מושכל בלבד
+        if (responseTimeValue < 100) {
+            // תגובה מהירה מאוד בדרך כלל מעידה על 404
+            displayResult(
+                404,
+                'Not Found (inferred)',
+                url,
+                responseTimeValue,
+                'לא זמין',
+                'לא זמין',
+                formatDate(new Date())
+            );
+            saveToHistory(url, 404, responseTimeValue);
+        } else {
+            // אחרת, זה יכול להיות כל סטטוס שגיאה
+            displayResult(
+                400,
+                'Error (inferred)',
+                url,
+                responseTimeValue,
+                'לא זמין',
+                'לא זמין',
+                formatDate(new Date())
+            );
+            saveToHistory(url, 400, responseTimeValue);
+        }
+    };
+    
+    // נסה לטעון את האתר כתמונה
+    img.src = url;
+}
+
+// הוסף גם פונקציה שמנסה להסיק אם האתר מעביר אותנו (301/302)
+function isRedirecting(url, callback) {
+    const frame = document.createElement('iframe');
+    frame.style.display = 'none';
+    document.body.appendChild(frame);
+    
+    const startTime = Date.now();
+    let redirectDetected = false;
+    
+    // הגדר זמן חריגה
+    const timeoutTimer = setTimeout(() => {
+        document.body.removeChild(frame);
+        callback(false, 0);
+    }, 5000);
+    
+    try {
+        frame.onload = function() {
+            clearTimeout(timeoutTimer);
+            const endTime = Date.now();
+            const responseTime = endTime - startTime;
+            
+            try {
+                // נסה לבדוק אם ה-URL השתנה (סימן להפניה)
+                const currentUrl = frame.contentWindow.location.href;
+                redirectDetected = (currentUrl !== url);
+            } catch (e) {
+                // אם יש שגיאת CORS, לא נוכל לבדוק את ה-URL
+                redirectDetected = false;
+            }
+            
+            document.body.removeChild(frame);
+            callback(redirectDetected, responseTime);
+        };
+        
+        frame.onerror = function() {
+            clearTimeout(timeoutTimer);
+            document.body.removeChild(frame);
+            callback(false, Date.now() - startTime);
+        };
+        
+        frame.src = url;
+    } catch (e) {
+        clearTimeout(timeoutTimer);
+        if (document.body.contains(frame)) {
+            document.body.removeChild(frame);
+        }
+        callback(false, 0);
+    }
+}
+
 function checkUrlWithJSONP(url) {
     const startTime = Date.now();
     const proxyUrl = 'https://jsonp.afeld.me/?url=';
