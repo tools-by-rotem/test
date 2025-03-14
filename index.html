@@ -427,8 +427,98 @@
         return canonicalLink ? canonicalLink.getAttribute('href') : '';
     }
     
-    // פונקציות שכבר הוגדרו בקוד הקיים
-    // updatePreview, showRecommendations, showError, isValidURL
+    // פונקציות חדשות שהוספתי
+    
+    function updatePreview(data, pageUrl) {
+        // נסה להשתמש בתמונת OG, אם לא קיימת השתמש בתמונת Twitter
+        const imageUrl = data['Open Graph']['og:image'] || data['Twitter Card']['twitter:image'] || '/api/placeholder/800/400';
+        previewImg.src = imageUrl;
+        previewImg.onerror = function() {
+            this.src = '/api/placeholder/800/400';
+        };
+        
+        // שם האתר וכותרת
+        const title = data['Open Graph']['og:title'] || data['Twitter Card']['twitter:title'] || data['Standard HTML']['title'] || 'אין כותרת';
+        previewTitle.textContent = title;
+        
+        // תיאור
+        const description = data['Open Graph']['og:description'] || data['Twitter Card']['twitter:description'] || data['Standard HTML']['description'] || 'אין תיאור';
+        previewDescription.textContent = description;
+        
+        // URL
+        const url = data['Open Graph']['og:url'] || data['Standard HTML']['canonical'] || pageUrl;
+        const domain = extractDomain(url);
+        previewUrl.textContent = domain;
+    }
+    
+    function extractDomain(url) {
+        try {
+            const urlObj = new URL(url);
+            return urlObj.hostname;
+        } catch (e) {
+            return url;
+        }
+    }
+    
+    function showRecommendations(data) {
+        recommendationsList.innerHTML = '';
+        const recommendations = [];
+        
+        // בדוק את תגיות ה-OG העיקריות
+        if (!data['Open Graph']['og:title']) {
+            recommendations.push('<span class="missing">חסר:</span> תגית og:title - חשוב לשיתוף תוכן');
+        } else {
+            recommendations.push('<span class="found">נמצא:</span> תגית og:title');
+        }
+        
+        if (!data['Open Graph']['og:description']) {
+            recommendations.push('<span class="missing">חסר:</span> תגית og:description - חשוב לשיתוף תוכן');
+        } else {
+            recommendations.push('<span class="found">נמצא:</span> תגית og:description');
+        }
+        
+        if (!data['Open Graph']['og:image']) {
+            recommendations.push('<span class="missing">חסר:</span> תגית og:image - חשוב לשיתוף תוכן');
+        } else {
+            recommendations.push('<span class="found">נמצא:</span> תגית og:image');
+        }
+        
+        if (!data['Open Graph']['og:url']) {
+            recommendations.push('<span class="missing">חסר:</span> תגית og:url - חשוב לשיתוף תוכן');
+        } else {
+            recommendations.push('<span class="found">נמצא:</span> תגית og:url');
+        }
+        
+        // בדוק את תגיות Twitter
+        if (!data['Twitter Card']['twitter:card']) {
+            recommendations.push('<span class="missing">חסר:</span> תגית twitter:card - חשוב לשיתוף בטוויטר');
+        } else {
+            recommendations.push('<span class="found">נמצא:</span> תגית twitter:card');
+        }
+        
+        // הוסף המלצות לרשימה
+        recommendations.forEach(rec => {
+            const li = document.createElement('li');
+            li.innerHTML = rec;
+            recommendationsList.appendChild(li);
+        });
+    }
+    
+    function showError(message) {
+        errorMessage.textContent = message;
+        errorMessage.style.display = 'block';
+        loading.style.display = 'none';
+        resultContainer.classList.remove('show');
+    }
+    
+    function isValidURL(url) {
+        try {
+            new URL(url);
+            return true;
+        } catch (e) {
+            return false;
+        }
+    }
     
     function updateTagsDisplay(data) {
         tagsContainer.innerHTML = '';
@@ -462,7 +552,7 @@
             tagsContainer.innerHTML = '<p>לא נמצאו תגיות Open Graph</p>';
         }
     }
-});
-    </script>
+ });
+</script>
 </body>
 </html>
