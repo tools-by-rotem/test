@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="robots" content="noindex,nofollow">  
+    <meta name="robots" content="noindex,nofollow">    
     <title>בודק סטטוס HTTP</title>
     <style>
         * {
@@ -129,10 +129,37 @@
             margin-top: 30px;
         }
         
-        .history h2 {
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 10px;
+        }
+        
+        .history-header h2 {
+            margin: 0;
             font-size: 18px;
             color: #555;
+        }
+        
+        .clear-history-button {
+            background-color: #f44336;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            font-size: 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .clear-history-button:hover {
+            background-color: #d32f2f;
+        }
+        
+        .clear-history-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
         
         .history-list {
@@ -208,7 +235,10 @@
         </div>
         
         <div class="history">
-            <h2>היסטוריית בדיקות</h2>
+            <div class="history-header">
+                <h2>היסטוריית בדיקות</h2>
+                <button id="clearHistoryButton" class="clear-history-button">נקה היסטוריה</button>
+            </div>
             <ul class="history-list" id="historyList"></ul>
         </div>
     </div>
@@ -227,6 +257,38 @@
     const date = document.getElementById('date');
     const loader = document.getElementById('loader');
     const historyList = document.getElementById('historyList');
+    
+    // הוסף כפתור ניקוי להיסטוריה
+    const historyHeader = document.querySelector('.history h2');
+    const clearHistoryButton = document.createElement('button');
+    clearHistoryButton.id = 'clearHistoryButton';
+    clearHistoryButton.textContent = 'נקה היסטוריה';
+    clearHistoryButton.style.marginRight = '10px';
+    clearHistoryButton.style.padding = '5px 10px';
+    clearHistoryButton.style.fontSize = '14px';
+    clearHistoryButton.style.backgroundColor = '#f44336';
+    clearHistoryButton.style.color = 'white';
+    clearHistoryButton.style.border = 'none';
+    clearHistoryButton.style.borderRadius = '4px';
+    clearHistoryButton.style.cursor = 'pointer';
+    
+    // הוסף את הכפתור לצד הכותרת
+    const historyHeaderContainer = document.createElement('div');
+    historyHeaderContainer.style.display = 'flex';
+    historyHeaderContainer.style.justifyContent = 'space-between';
+    historyHeaderContainer.style.alignItems = 'center';
+    historyHeaderContainer.style.marginBottom = '10px';
+    
+    // העתק את הכותרת המקורית לקונטיינר החדש
+    const headerClone = historyHeader.cloneNode(true);
+    historyHeaderContainer.appendChild(headerClone);
+    historyHeaderContainer.appendChild(clearHistoryButton);
+    
+    // החלף את הכותרת המקורית בקונטיינר החדש
+    historyHeader.parentNode.replaceChild(historyHeaderContainer, historyHeader);
+    
+    // הוסף אירוע לחיצה לכפתור הניקוי
+    clearHistoryButton.addEventListener('click', clearHistory);
     
     // טען היסטוריה מהזיכרון המקומי
     loadHistory();
@@ -380,6 +442,39 @@
         
         // עדכן את תצוגת ההיסטוריה
         loadHistory();
+        
+        // עדכן את מצב כפתור הניקוי
+        updateClearButtonState();
+    }
+    
+    function clearHistory() {
+        // הצג דיאלוג אישור לפני מחיקה
+        if (confirm('האם אתה בטוח שברצונך למחוק את כל היסטוריית הבדיקות?')) {
+            // מחק את ההיסטוריה מהאחסון המקומי
+            localStorage.removeItem('httpCheckerHistory');
+            
+            // עדכן את התצוגה
+            loadHistory();
+            
+            // עדכן את מצב כפתור הניקוי
+            updateClearButtonState();
+        }
+    }
+    
+    function updateClearButtonState() {
+        // בדוק אם יש היסטוריה
+        const history = JSON.parse(localStorage.getItem('httpCheckerHistory') || '[]');
+        
+        // הפעל או בטל את כפתור הניקוי בהתאם
+        if (history.length === 0) {
+            clearHistoryButton.disabled = true;
+            clearHistoryButton.style.opacity = '0.5';
+            clearHistoryButton.style.cursor = 'not-allowed';
+        } else {
+            clearHistoryButton.disabled = false;
+            clearHistoryButton.style.opacity = '1';
+            clearHistoryButton.style.cursor = 'pointer';
+        }
     }
     
     function loadHistory() {
@@ -474,6 +569,9 @@
         
         return statusTexts[code] || 'Unknown Status';
     }
+    
+    // עדכן את מצב כפתור הניקוי בטעינה הראשונית
+    updateClearButtonState();
 });
     </script>
 </body>
