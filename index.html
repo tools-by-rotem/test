@@ -190,6 +190,7 @@
             border-radius: 12px;
             font-size: 12px;
             color: white;
+            margin: 0 10px;
         }
         
         .status-2xx {
@@ -206,6 +207,24 @@
         
         .status-5xx {
             background-color: #d9534f;
+        }
+        
+        .redirect-info {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            border-right: 4px solid #5bc0de;
+        }
+        
+        .redirect-chain {
+            margin-top: 5px;
+            padding-right: 15px;
+        }
+        
+        .redirect-arrow {
+            color: #5bc0de;
+            margin: 0 5px;
         }
     </style>
 </head>
@@ -231,6 +250,10 @@
                 <div class="detail-item">סוג תוכן: <span id="contentType"></span></div>
                 <div class="detail-item">שרת: <span id="server"></span></div>
                 <div class="detail-item">תאריך: <span id="date"></span></div>
+                <div id="redirectInfo" class="redirect-info" style="display: none">
+                    <div><strong>שרשרת הפניות:</strong></div>
+                    <div id="redirectChain" class="redirect-chain"></div>
+                </div>
             </div>
         </div>
         
@@ -244,262 +267,462 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-    const urlInput = document.getElementById('urlInput');
-    const checkButton = document.getElementById('checkButton');
-    const result = document.getElementById('result');
-    const statusText = document.getElementById('statusText');
-    const statusCode = document.getElementById('statusCode');
-    const urlText = document.getElementById('urlText');
-    const responseTime = document.getElementById('responseTime');
-    const contentType = document.getElementById('contentType');
-    const server = document.getElementById('server');
-    const date = document.getElementById('date');
-    const loader = document.getElementById('loader');
-    const historyList = document.getElementById('historyList');
-    
-    // הוסף כפתור ניקוי להיסטוריה
-    const historyHeader = document.querySelector('.history h2');
-    const clearHistoryButton = document.createElement('button');
-    clearHistoryButton.id = 'clearHistoryButton';
-    clearHistoryButton.textContent = 'נקה היסטוריה';
-    clearHistoryButton.style.marginRight = '10px';
-    clearHistoryButton.style.padding = '5px 10px';
-    clearHistoryButton.style.fontSize = '14px';
-    clearHistoryButton.style.backgroundColor = '#f44336';
-    clearHistoryButton.style.color = 'white';
-    clearHistoryButton.style.border = 'none';
-    clearHistoryButton.style.borderRadius = '4px';
-    clearHistoryButton.style.cursor = 'pointer';
-    
-    // הוסף את הכפתור לצד הכותרת
-    const historyHeaderContainer = document.createElement('div');
-    historyHeaderContainer.style.display = 'flex';
-    historyHeaderContainer.style.justifyContent = 'space-between';
-    historyHeaderContainer.style.alignItems = 'center';
-    historyHeaderContainer.style.marginBottom = '10px';
-    
-    // העתק את הכותרת המקורית לקונטיינר החדש
-    const headerClone = historyHeader.cloneNode(true);
-    historyHeaderContainer.appendChild(headerClone);
-    historyHeaderContainer.appendChild(clearHistoryButton);
-    
-    // החלף את הכותרת המקורית בקונטיינר החדש
-    historyHeader.parentNode.replaceChild(historyHeaderContainer, historyHeader);
-    
-    // הוסף אירוע לחיצה לכפתור הניקוי
-    clearHistoryButton.addEventListener('click', clearHistory);
-    
-    // טען היסטוריה מהזיכרון המקומי
-    loadHistory();
-    
-    checkButton.addEventListener('click', checkUrl);
-    urlInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            checkUrl();
-        }
-    });
-    
-    // החלף את הפונקציה checkUrl המקורית בפונקציה זו
-function checkUrl() {
+            const urlInput = document.getElementById('urlInput');
+            const checkButton = document.getElementById('checkButton');
+            const result = document.getElementById('result');
+            const statusText = document.getElementById('statusText');
+            const statusCode = document.getElementById('statusCode');
+            const urlText = document.getElementById('urlText');
+            const responseTime = document.getElementById('responseTime');
+            const contentType = document.getElementById('contentType');
+            const server = document.getElementById('server');
+            const date = document.getElementById('date');
+            const loader = document.getElementById('loader');
+            const historyList = document.getElementById('historyList');
+            const redirectInfo = document.getElementById('redirectInfo');
+            const redirectChain = document.getElementById('redirectChain');
+
+            const historyHeader = document.querySelector('.history-header');
+            const clearHistoryButton = document.createElement('button');
+            clearHistoryButton.className = 'clear-history-button';
+            clearHistoryButton.textContent = 'נקה היסטוריה';
+            historyHeader.appendChild(clearHistoryButton);
+
+            checkButton.addEventListener('click', checkUrl);
+            urlInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    checkUrl();
+                }
+            });
+            clearHistoryButton.addEventListener('click', clearHistory);
+
+            loadHistory();
+
+            async function checkUrl() {
     const url = urlInput.value.trim();
     
     if (!url) {
         showError('נא להזין כתובת URL');
         return;
     }
-    
+
     if (!url.startsWith('http://') && !url.startsWith('https://')) {
         showError('כתובת URL חייבת להתחיל ב-http:// או https://');
         return;
     }
-    
-    // הסתר תוצאה קודמת והצג טעינה
+
     result.style.display = 'none';
     loader.style.display = 'block';
-    
-    // שימוש בשירות status.js שמספק נתוני סטטוס באמצעות JSONP
-    checkWithStatusJS(url);
-}
+    redirectInfo.style.display = 'none';
 
-// פונקציה שמשתמשת בשירות חיצוני (לא דורש חשבון או הרשמה)
-function checkWithStatusJS(url) {
     const startTime = Date.now();
     
-    // יצירת אלמנט script דינמי
-    const script = document.createElement('script');
-    
-    // הגדרת callback גלובלי (מחוץ לפונקציה)
-    window.statusCallback = function(data) {
-        const endTime = Date.now();
-        const responseTimeValue = endTime - startTime;
-        
-        loader.style.display = 'none';
-        
-        if (data.error) {
-            showError('שגיאה: ' + data.error);
-            return;
+    try {
+        // נסיון ראשון: שימוש ב-cors-anywhere (אם זמין)
+        await checkWithCorsAnywhere(url, startTime);
+    } catch (error) {
+        console.log("CORS Anywhere failed, trying AllOrigins");
+        try {
+            // נסיון שני: שימוש ב-allorigins
+            await checkWithAllOrigins(url, startTime);
+        } catch (error) {
+            console.log("AllOrigins failed, trying JSONp");
+            try {
+                // נסיון שלישי: שימוש ב-jsonp.afeld.me
+                await checkWithJsonp(url, startTime);
+            } catch (error) {
+                console.log("All methods failed, using fallback");
+                // נסיון אחרון: שימוש בשיטת החילוץ
+                await fallbackCheckMethod(url, startTime);
+            }
         }
-        
-        // הצג את התוצאות
+    }
+}
+
+// פונקציה לבדיקה באמצעות CORS Anywhere
+async function checkWithCorsAnywhere(url, startTime) {
+    const corsAnywhereUrl = 'https://cors-anywhere.herokuapp.com/';
+    const response = await fetch(corsAnywhereUrl + url, {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        redirect: 'manual'
+    });
+    
+    const endTime = Date.now();
+    const responseTimeValue = endTime - startTime;
+    
+    if (response.status >= 300 && response.status < 400) {
+        const redirectChain = await followRedirects(url);
         displayResult(
-            data.status || 0,
-            data.statusText || getStatusTextFromCode(data.status || 0),
+            response.status,
+            getStatusTextFromCode(response.status),
             url,
             responseTimeValue,
-            data.contentType || 'לא זמין',
-            data.server || 'לא זמין',
+            response.headers.get('content-type') || 'לא זמין',
+            response.headers.get('server') || 'לא זמין',
+            formatDate(new Date()),
+            redirectChain
+        );
+    } else {
+        displayResult(
+            response.status,
+            getStatusTextFromCode(response.status),
+            url,
+            responseTimeValue,
+            response.headers.get('content-type') || 'לא זמין',
+            response.headers.get('server') || 'לא זמין',
             formatDate(new Date())
         );
-        
-        // שמור בהיסטוריה
-        saveToHistory(url, data.status || 0, responseTimeValue);
-        
-        // נקה את האלמנט script
-        document.body.removeChild(script);
-        
-        // נקה את הפונקציה הגלובלית
-        delete window.statusCallback;
-    };
+    }
     
-    // הגדר טיימאאוט למקרה שהשירות לא עונה
-    const timeoutId = setTimeout(() => {
-        if (window.statusCallback) {
-            window.statusCallback({
-                error: 'פסק זמן: השירות לא הגיב תוך 10 שניות'
-            });
-        }
-    }, 10000);
-    
-    // השתמש בשירות שמאפשר בדיקת HTTP status דרך JSONP
-    // נשתמש בשירות הציבורי httpbin.org שמאפשר JSONP
-    script.src = `https://httpbin.org/status/${url}?callback=statusCallback`;
-    
-    // טיפול בשגיאות טעינת הסקריפט
-    script.onerror = function() {
-        clearTimeout(timeoutId);
-        loader.style.display = 'none';
-        
-        // במקרה של שגיאה, ננסה שיטה אחרת
-        checkWithFetchAPI(url);
-        
-        if (document.body.contains(script)) {
-            document.body.removeChild(script);
-        }
-        delete window.statusCallback;
-    };
-    
-    // הוספת הסקריפט לדף
-    document.body.appendChild(script);
+    saveToHistory(url, response.status, responseTimeValue);
 }
 
-// גישה חלופית עם fetch + no-cors (מוגבלת מאוד)
-function checkWithFetchAPI(url) {
-    const startTime = Date.now();
+// פונקציה לבדיקה באמצעות AllOrigins
+async function checkWithAllOrigins(url, startTime) {
+    const allOriginsUrl = 'https://api.allorigins.win/get?url=';
+    const response = await fetch(allOriginsUrl + encodeURIComponent(url));
     
-    // ניסיון עם fetch במצב no-cors (יחזיר רק אם הסטטוס הוא 200, אחרת יכשל)
-    fetch(url, { mode: 'no-cors' })
-        .then(response => {
+    if (!response.ok) {
+        throw new Error('AllOrigins request failed');
+    }
+    
+    const data = await response.json();
+    const endTime = Date.now();
+    const responseTimeValue = endTime - startTime;
+    
+    const statusCode = data.status ? data.status.http_code : 200;
+    
+    displayResult(
+        statusCode,
+        getStatusTextFromCode(statusCode),
+        url,
+        responseTimeValue,
+        data.status && data.status.content_type || 'לא זמין',
+        'לא זמין',
+        formatDate(new Date())
+    );
+    
+    saveToHistory(url, statusCode, responseTimeValue);
+}
+
+// פונקציה לבדיקה באמצעות JSONp
+async function checkWithJsonp(url, startTime) {
+    const jsonpUrl = 'https://jsonp.afeld.me/?url=';
+    const response = await fetch(jsonpUrl + encodeURIComponent(url));
+    
+    if (!response.ok) {
+        throw new Error('JSONp request failed');
+    }
+    
+    const endTime = Date.now();
+    const responseTimeValue = endTime - startTime;
+    
+    displayResult(
+        response.status,
+        getStatusTextFromCode(response.status),
+        url,
+        responseTimeValue,
+        response.headers.get('content-type') || 'לא זמין',
+        'לא זמין',
+        formatDate(new Date())
+    );
+    
+    saveToHistory(url, response.status, responseTimeValue);
+}
+
+// פונקציית גיבוי לבדיקת סטטוס
+async function fallbackCheckMethod(url, startTime) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        const timeout = setTimeout(() => {
             const endTime = Date.now();
             const responseTimeValue = endTime - startTime;
             
-            // במצב no-cors, תמיד יחזור response.type = "opaque" וסטטוס 0
-            // אם הגענו לכאן, כנראה שהאתר קיים ומגיב (אבל לא נדע את הסטטוס המדויק)
-            
             displayResult(
-                200, // נניח 200 אם הבקשה הצליחה
-                'OK (משוער)',
+                404,
+                'Not Found (Fallback)',
                 url,
                 responseTimeValue,
-                'לא זמין (בגלל מגבלות CORS)',
-                'לא זמין (בגלל מגבלות CORS)',
+                'לא זמין',
+                'לא זמין',
+                formatDate(new Date())
+            );
+            
+            saveToHistory(url, 404, responseTimeValue);
+            resolve();
+        }, 5000);
+        
+        img.onload = () => {
+            clearTimeout(timeout);
+            const endTime = Date.now();
+            const responseTimeValue = endTime - startTime;
+            
+            displayResult(
+                200,
+                'OK (Fallback)',
+                url,
+                responseTimeValue,
+                'image/*',
+                'לא זמין',
                 formatDate(new Date())
             );
             
             saveToHistory(url, 200, responseTimeValue);
-        })
-        .catch(error => {
-            // אם נכשל, ננסה את הגישה האחרונה
-            checkWithImage(url);
-        });
+            resolve();
+        };
+        
+        img.onerror = () => {
+            clearTimeout(timeout);
+            
+            // נסה לבדוק באמצעות XMLHttpRequest
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', url, true);
+            xhr.timeout = 5000;
+            
+            xhr.onload = () => {
+                const endTime = Date.now();
+                const responseTimeValue = endTime - startTime;
+                
+                displayResult(
+                    xhr.status,
+                    getStatusTextFromCode(xhr.status),
+                    url,
+                    responseTimeValue,
+                    xhr.getResponseHeader('Content-Type') || 'לא זמין',
+                    'לא זמין',
+                    formatDate(new Date())
+                );
+                
+                saveToHistory(url, xhr.status, responseTimeValue);
+                resolve();
+            };
+            
+            xhr.ontimeout = xhr.onerror = () => {
+                const endTime = Date.now();
+                const responseTimeValue = endTime - startTime;
+                
+                // נסה לבדוק אם זה 404 או שגיאה אחרת
+                fetch(url, { mode: 'no-cors' })
+                    .then(() => {
+                        displayResult(
+                            200,
+                            'OK (Fallback)',
+                            url,
+                            responseTimeValue,
+                            'לא זמין',
+                            'לא זמין',
+                            formatDate(new Date())
+                        );
+                        
+                        saveToHistory(url, 200, responseTimeValue);
+                        resolve();
+                    })
+                    .catch(() => {
+                        displayResult(
+                            404,
+                            'Not Reachable (Fallback)',
+                            url,
+                            responseTimeValue,
+                            'לא זמין',
+                            'לא זמין',
+                            formatDate(new Date())
+                        );
+                        
+                        saveToHistory(url, 404, responseTimeValue);
+                        resolve();
+                    });
+            };
+            
+            try {
+                xhr.send();
+            } catch (e) {
+                const endTime = Date.now();
+                const responseTimeValue = endTime - startTime;
+                
+                displayResult(
+                    0,
+                    'Connection Error',
+                    url,
+                    responseTimeValue,
+                    'לא זמין',
+                    'לא זמין',
+                    formatDate(new Date())
+                );
+                
+                saveToHistory(url, 0, responseTimeValue);
+                resolve();
+            }
+        };
+        
+        img.src = url;
+    });
 }
 
-// גישה חלופית עם טעינת תמונה
-function checkWithImage(url) {
-    const startTime = Date.now();
-    const img = new Image();
+// שיפור פונקציית מעקב אחרי הפניות
+async function followRedirects(url, maxRedirects = 10) {
+    // שימוש ב-3 שירותי proxy לזיהוי הפניות
+    const proxies = [
+        'https://cors-anywhere.herokuapp.com/',
+        'https://api.allorigins.win/get?url=',
+        'https://jsonp.afeld.me/?url='
+    ];
     
-    // מגדיר טיימאאוט
-    const timeoutId = setTimeout(() => {
-        loader.style.display = 'none';
-        // אם התמונה לא נטענה תוך 5 שניות, סביר להניח שהשרת לא זמין
-        displayResult(
-            503,
-            'Service Unavailable (משוער)',
-            url,
-            5000,
-            'לא זמין',
-            'לא זמין',
-            formatDate(new Date())
-        );
-        saveToHistory(url, 503, 5000);
-    }, 5000);
+    const chain = [];
+    let currentUrl = url;
     
-    img.onload = function() {
-        clearTimeout(timeoutId);
-        const endTime = Date.now();
-        const responseTimeValue = endTime - startTime;
-        loader.style.display = 'none';
+    for (let i = 0; i < maxRedirects; i++) {
+        let redirectDetected = false;
         
-        // אם התמונה נטענת, הסטטוס הוא 200
-        displayResult(
-            200,
-            'OK (משוער)',
-            url,
-            responseTimeValue,
-            'לא זמין',
-            'לא זמין',
-            formatDate(new Date())
-        );
-        saveToHistory(url, 200, responseTimeValue);
-    };
+        // נסה את כל השירותים עד שאחד מהם עובד
+        for (const proxy of proxies) {
+            try {
+                if (proxy.includes('allorigins')) {
+                    // טיפול מיוחד ל-allorigins
+                    const response = await fetch(proxy + encodeURIComponent(currentUrl));
+                    const data = await response.json();
+                    
+                    if (!data.status) continue;
+                    
+                    const statusCode = data.status.http_code;
+                    chain.push({
+                        url: currentUrl,
+                        status: statusCode
+                    });
+                    
+                    if (statusCode >= 300 && statusCode < 400) {
+                        const headers = data.status.headers;
+                        const location = headers.Location || headers.location;
+                        
+                        if (!location) break;
+                        
+                        currentUrl = new URL(location, currentUrl).href;
+                        redirectDetected = true;
+                        break;
+                    } else {
+                        // אם לא נמצאה הפניה, סיים את השרשרת
+                        return chain.length > 1 ? chain : null;
+                    }
+                } else {
+                    // שימוש רגיל בשירותי proxy
+                    const response = await fetch(proxy + currentUrl, {
+                        method: 'HEAD',
+                        redirect: 'manual',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+                    
+                    chain.push({
+                        url: currentUrl,
+                        status: response.status
+                    });
+                    
+                    if (response.status >= 300 && response.status < 400) {
+                        const location = response.headers.get('location');
+                        if (!location) break;
+                        
+                        currentUrl = new URL(location, currentUrl).href;
+                        redirectDetected = true;
+                        break;
+                    } else {
+                        // אם לא נמצאה הפניה, סיים את השרשרת
+                        return chain.length > 1 ? chain : null;
+                    }
+                }
+            } catch (error) {
+                continue;
+            }
+        }
+        
+        // אם לא הצלחנו לזהות הפניה באמצעות אף שירות, סיים את הלולאה
+        if (!redirectDetected) {
+            break;
+        }
+    }
     
-    img.onerror = function() {
-        clearTimeout(timeoutId);
-        const endTime = Date.now();
-        const responseTimeValue = endTime - startTime;
-        loader.style.display = 'none';
-        
-        // אם יש שגיאה בטעינת התמונה, ננסה להשתמש בגישה הבאה
-        // זה יהיה המקרה הכי נפוץ כי רוב האתרים לא מחזירים תמונות
-        
-        // הוספת הודעה על מגבלות CORS בתצוגת התוצאה
-        displayResult(
-            0, // קוד לא ידוע
-            'לא ניתן לקבוע בוודאות (מגבלות אבטחה)',
-            url,
-            responseTimeValue,
-            'לא זמין (מגבלות CORS)',
-            'לא זמין (מגבלות CORS)',
-            formatDate(new Date())
-        );
-        
-        // הוסף הודעה מיוחדת על המגבלות
-        const corsMessage = document.createElement('div');
-        corsMessage.className = 'detail-item';
-        corsMessage.innerHTML = '<strong>הערה חשובה:</strong> בגלל מגבלות אבטחה של הדפדפן (CORS), לא ניתן לקבל את הסטטוס המדויק לאתרים חיצוניים ללא שרת backend. לתוצאות מדויקות, נדרש להשתמש בפתרון צד-שרת.';
-        document.querySelector('.details').appendChild(corsMessage);
-        
-        saveToHistory(url, 0, responseTimeValue);
-    };
-    
-    // נסה לטעון את האתר כתמונה
-    img.src = url;
+    return chain.length > 1 ? chain : null;
 }
 
-// שיפור פונקציית showError
+// הרחבת רשימת קודי הסטטוס
+function getStatusTextFromCode(code) {
+    const statusTexts = {
+        100: 'Continue',
+        101: 'Switching Protocols',
+        102: 'Processing',
+        103: 'Early Hints',
+        200: 'OK',
+        201: 'Created',
+        202: 'Accepted',
+        203: 'Non-Authoritative Information',
+        204: 'No Content',
+        205: 'Reset Content',
+        206: 'Partial Content',
+        207: 'Multi-Status',
+        208: 'Already Reported',
+        226: 'IM Used',
+        300: 'Multiple Choices',
+        301: 'Moved Permanently',
+        302: 'Found',
+        303: 'See Other',
+        304: 'Not Modified',
+        305: 'Use Proxy',
+        306: 'Switch Proxy',
+        307: 'Temporary Redirect',
+        308: 'Permanent Redirect',
+        400: 'Bad Request',
+        401: 'Unauthorized',
+        402: 'Payment Required',
+        403: 'Forbidden',
+        404: 'Not Found',
+        405: 'Method Not Allowed',
+        406: 'Not Acceptable',
+        407: 'Proxy Authentication Required',
+        408: 'Request Timeout',
+        409: 'Conflict',
+        410: 'Gone',
+        411: 'Length Required',
+        412: 'Precondition Failed',
+        413: 'Payload Too Large',
+        414: 'URI Too Long',
+        415: 'Unsupported Media Type',
+        416: 'Range Not Satisfiable',
+        417: 'Expectation Failed',
+        418: 'Im a teapot',
+        421: 'Misdirected Request',
+        422: 'Unprocessable Entity',
+        423: 'Locked',
+        424: 'Failed Dependency',
+        425: 'Too Early',
+        426: 'Upgrade Required',
+        428: 'Precondition Required',
+        429: 'Too Many Requests',
+        431: 'Request Header Fields Too Large',
+        451: 'Unavailable For Legal Reasons',
+        500: 'Internal Server Error',
+        501: 'Not Implemented',
+        502: 'Bad Gateway',
+        503: 'Service Unavailable',
+        504: 'Gateway Timeout',
+        505: 'HTTP Version Not Supported',
+        506: 'Variant Also Negotiates',
+        507: 'Insufficient Storage',
+        508: 'Loop Detected',
+        510: 'Not Extended',
+        511: 'Network Authentication Required',
+        0: 'Connection Error'
+    };
+    
+    return statusTexts[code] || 'Unknown Status';
+}
+
+// פונקציה לשיפור תצוגת שגיאות
 function showError(message) {
     loader.style.display = 'none';
     result.style.display = 'block';
+    redirectInfo.style.display = 'none';
     result.className = 'result error';
     statusText.textContent = message;
     statusCode.textContent = '';
@@ -508,418 +731,54 @@ function showError(message) {
     contentType.textContent = '-';
     server.textContent = '-';
     date.textContent = formatDate(new Date());
-    
-    // הוסף הערה על מגבלות CORS אם רלוונטי
-    if (message.includes('CORS') || message.includes('שגיאה')) {
-        const corsNote = document.createElement('div');
-        corsNote.className = 'details';
-        corsNote.innerHTML = '<div class="detail-item"><strong>הערה חשובה:</strong> בגלל מגבלות אבטחה של הדפדפן (CORS), כלי זה מוגבל ביכולת לבדוק אתרים שאינם מקור זה. לפתרון מלא נדרש שרת backend.</div>';
-        result.appendChild(corsNote);
-    }
 }
 
-// גישה חלופית שמנסה להסיק את הסטטוס דרך טעינת תמונה
-function inferStatusWithImage(url) {
-    const startTime = Date.now();
-    const img = new Image();
+// שיפור פונקציית התצוגה
+function displayResult(statusCodeValue, statusTextValue, url, respTime, contType, serv, dt, redirectChain = null) {
+    loader.style.display = 'none';
+    result.style.display = 'block';
+    redirectInfo.style.display = 'none';
     
-    // הגדר זמן חריגה
-    const timeoutTimer = setTimeout(() => {
-        loader.style.display = 'none';
-        // אם התמונה לא נטענה תוך 10 שניות, סביר להניח שהשרת לא זמין
-        displayResult(
-            503,
-            'Service Unavailable (inferred)',
-            url,
-            10000,
-            'לא זמין',
-            'לא זמין',
-            formatDate(new Date())
-        );
-        saveToHistory(url, 503, 10000);
-    }, 10000);
-    
-    img.onload = function() {
-        clearTimeout(timeoutTimer);
-        const endTime = Date.now();
-        const responseTimeValue = endTime - startTime;
-        loader.style.display = 'none';
-        
-        // אם התמונה נטענת, הסטטוס הוא 200
-        displayResult(
-            200,
-            'OK (inferred)',
-            url,
-            responseTimeValue,
-            'לא זמין',
-            'לא זמין',
-            formatDate(new Date())
-        );
-        saveToHistory(url, 200, responseTimeValue);
-    };
-    
-    img.onerror = function() {
-        clearTimeout(timeoutTimer);
-        const endTime = Date.now();
-        const responseTimeValue = endTime - startTime;
-        loader.style.display = 'none';
-        
-        // אם יש שגיאה בטעינת התמונה, ננסה לנחש אם זה 404 או סטטוס אחר
-        // שים לב שזה ניחוש מושכל בלבד
-        if (responseTimeValue < 100) {
-            // תגובה מהירה מאוד בדרך כלל מעידה על 404
-            displayResult(
-                404,
-                'Not Found (inferred)',
-                url,
-                responseTimeValue,
-                'לא זמין',
-                'לא זמין',
-                formatDate(new Date())
-            );
-            saveToHistory(url, 404, responseTimeValue);
-        } else {
-            // אחרת, זה יכול להיות כל סטטוס שגיאה
-            displayResult(
-                400,
-                'Error (inferred)',
-                url,
-                responseTimeValue,
-                'לא זמין',
-                'לא זמין',
-                formatDate(new Date())
-            );
-            saveToHistory(url, 400, responseTimeValue);
-        }
-    };
-    
-    // נסה לטעון את האתר כתמונה
-    img.src = url;
-}
-
-// הוסף גם פונקציה שמנסה להסיק אם האתר מעביר אותנו (301/302)
-function isRedirecting(url, callback) {
-    const frame = document.createElement('iframe');
-    frame.style.display = 'none';
-    document.body.appendChild(frame);
-    
-    const startTime = Date.now();
-    let redirectDetected = false;
-    
-    // הגדר זמן חריגה
-    const timeoutTimer = setTimeout(() => {
-        document.body.removeChild(frame);
-        callback(false, 0);
-    }, 5000);
-    
-    try {
-        frame.onload = function() {
-            clearTimeout(timeoutTimer);
-            const endTime = Date.now();
-            const responseTime = endTime - startTime;
-            
-            try {
-                // נסה לבדוק אם ה-URL השתנה (סימן להפניה)
-                const currentUrl = frame.contentWindow.location.href;
-                redirectDetected = (currentUrl !== url);
-            } catch (e) {
-                // אם יש שגיאת CORS, לא נוכל לבדוק את ה-URL
-                redirectDetected = false;
-            }
-            
-            document.body.removeChild(frame);
-            callback(redirectDetected, responseTime);
-        };
-        
-        frame.onerror = function() {
-            clearTimeout(timeoutTimer);
-            document.body.removeChild(frame);
-            callback(false, Date.now() - startTime);
-        };
-        
-        frame.src = url;
-    } catch (e) {
-        clearTimeout(timeoutTimer);
-        if (document.body.contains(frame)) {
-            document.body.removeChild(frame);
-        }
-        callback(false, 0);
-    }
-}
-
-function checkUrlWithJSONP(url) {
-    const startTime = Date.now();
-    const proxyUrl = 'https://jsonp.afeld.me/?url=';
-    
-    fetch(proxyUrl + encodeURIComponent(url))
-    .then(response => {
-        const endTime = Date.now();
-        const responseTimeValue = endTime - startTime;
-        
-        // הצג תוצאה
-        displayResult(
-            response.status, 
-            response.statusText, 
-            url, 
-            responseTimeValue, 
-            response.headers.get('content-type') || 'לא זמין', 
-            response.headers.get('server') || 'לא זמין', 
-            formatDate(new Date())
-        );
-        
-        // שמור בהיסטוריה
-        saveToHistory(url, response.status, responseTimeValue);
-    })
-    .catch(error => {
-        // נסיון אחרון - השתמש בשירות httpstat.us לבדיקה עקיפה
-        testWithFallback(url);
-    });
-}
-
-// גישת מפלט סופית - שימוש בשירות בדיקה פשוט יותר
-function testWithFallback(url) {
-    // נסה בדיקה מקומית בלבד עם XMLHttpRequest
-    const xhr = new XMLHttpRequest();
-    const startTime = Date.now();
-    
-    xhr.onreadystatechange = function() {
-        if (xhr.readyState === 4) {
-            const endTime = Date.now();
-            const responseTimeValue = endTime - startTime;
-            
-            if (xhr.status === 0) {
-                showError('לא ניתן לבדוק את הסטטוס: בעיית CORS או אבטחה. נסה URL אחר.');
-            } else {
-                displayResult(
-                    xhr.status,
-                    getStatusTextFromCode(xhr.status),
-                    url,
-                    responseTimeValue,
-                    xhr.getResponseHeader('Content-Type') || 'לא זמין',
-                    xhr.getResponseHeader('Server') || 'לא זמין',
-                    formatDate(new Date())
-                );
-                
-                saveToHistory(url, xhr.status, responseTimeValue);
-            }
-        }
-    };
-    
-    try {
-        xhr.open('HEAD', url, true);
-        xhr.send();
-    } catch (e) {
-        showError('שגיאה בבדיקה: ' + e.message);
-    }
-}
-    
-    function displayResult(statusCodeValue, statusTextValue, url, respTime, contType, serv, dt) {
-        loader.style.display = 'none';
-        result.style.display = 'block';
-        
-        // קבע קלאס CSS לפי קוד סטטוס
-        result.className = 'result';
-        if (statusCodeValue >= 200 && statusCodeValue < 300) {
-            result.classList.add('success');
-        } else if (statusCodeValue >= 300 && statusCodeValue < 400) {
-            result.classList.add('info');
-        } else if (statusCodeValue >= 400 && statusCodeValue < 500) {
-            result.classList.add('warning');
-        } else {
-            result.classList.add('error');
-        }
-        
-        // עדכן את הטקסט בתוצאה
-        statusCode.textContent = statusCodeValue;
-        statusText.textContent = statusTextValue || getStatusTextFromCode(statusCodeValue);
-        urlText.textContent = url;
-        responseTime.textContent = respTime;
-        contentType.textContent = contType;
-        server.textContent = serv;
-        date.textContent = dt;
+    result.className = 'result';
+    if (statusCodeValue >= 200 && statusCodeValue < 300) {
+        result.classList.add('success');
+    } else if (statusCodeValue >= 300 && statusCodeValue < 400) {
+        result.classList.add('info');
+    } else if (statusCodeValue >= 400 && statusCodeValue < 500) {
+        result.classList.add('warning');
+    } else if (statusCodeValue >= 500) {
+        result.classList.add('error');
+    } else {
+        result.classList.add('error'); // לקודי שגיאה לא סטנדרטיים
     }
     
-    function showError(message) {
-        loader.style.display = 'none';
-        result.style.display = 'block';
-        result.className = 'result error';
-        statusText.textContent = message;
-        statusCode.textContent = '';
-        urlText.textContent = urlInput.value;
-        responseTime.textContent = '-';
-        contentType.textContent = '-';
-        server.textContent = '-';
-        date.textContent = formatDate(new Date());
-    }
+    statusCode.textContent = statusCodeValue;
+    statusText.textContent = statusTextValue;
+    urlText.textContent = url;
+    responseTime.textContent = respTime;
+    contentType.textContent = contType;
+    server.textContent = serv;
+    date.textContent = dt;
     
-    function saveToHistory(url, status, respTime) {
-        // קבל היסטוריה קיימת או צור חדשה
-        const history = JSON.parse(localStorage.getItem('httpCheckerHistory') || '[]');
+    if (redirectChain && redirectChain.length > 1) {
+        redirectInfo.style.display = 'block';
+        redirectChain.innerHTML = '';
         
-        // בדוק אם URL כבר קיים בהיסטוריה (למניעת שכפולים)
-        const existingIndex = history.findIndex(item => item.url === url);
-        
-        if (existingIndex !== -1) {
-            // עדכן את הרשומה הקיימת
-            history[existingIndex] = {
-                url: url,
-                status: status,
-                responseTime: respTime,
-                timestamp: new Date().toISOString()
-            };
+        redirectChain.forEach((redirect, index) => {
+            const redirectItem = document.createElement('div');
+            const statusClass = getStatusClass(redirect.status);
             
-            // העבר אותה לתחילת הרשימה
-            const item = history.splice(existingIndex, 1)[0];
-            history.unshift(item);
-        } else {
-            // הוסף בדיקה חדשה בתחילת המערך
-            history.unshift({
-                url: url,
-                status: status,
-                responseTime: respTime,
-                timestamp: new Date().toISOString()
-            });
-        }
-        
-        // שמור רק 10 הבדיקות האחרונות
-        const limitedHistory = history.slice(0, 10);
-        
-        // שמור בזיכרון המקומי
-        localStorage.setItem('httpCheckerHistory', JSON.stringify(limitedHistory));
-        
-        // עדכן את תצוגת ההיסטוריה
-        loadHistory();
-        
-        // עדכן את מצב כפתור הניקוי
-        updateClearButtonState();
-    }
-    
-    function clearHistory() {
-        // הצג דיאלוג אישור לפני מחיקה
-        if (confirm('האם אתה בטוח שברצונך למחוק את כל היסטוריית הבדיקות?')) {
-            // מחק את ההיסטוריה מהאחסון המקומי
-            localStorage.removeItem('httpCheckerHistory');
+            redirectItem.innerHTML = `
+                ${index > 0 ? '<span class="redirect-arrow">→</span>' : ''}
+                <span dir="ltr">${redirect.url}</span>
+                <span class="status-badge ${statusClass}">${redirect.status}</span>
+            `;
             
-            // עדכן את התצוגה
-            loadHistory();
-            
-            // עדכן את מצב כפתור הניקוי
-            updateClearButtonState();
-        }
-    }
-    
-    function updateClearButtonState() {
-        // בדוק אם יש היסטוריה
-        const history = JSON.parse(localStorage.getItem('httpCheckerHistory') || '[]');
-        
-        // הפעל או בטל את כפתור הניקוי בהתאם
-        if (history.length === 0) {
-            clearHistoryButton.disabled = true;
-            clearHistoryButton.style.opacity = '0.5';
-            clearHistoryButton.style.cursor = 'not-allowed';
-        } else {
-            clearHistoryButton.disabled = false;
-            clearHistoryButton.style.opacity = '1';
-            clearHistoryButton.style.cursor = 'pointer';
-        }
-    }
-    
-    function loadHistory() {
-        const history = JSON.parse(localStorage.getItem('httpCheckerHistory') || '[]');
-        
-        if (history.length === 0) {
-            historyList.innerHTML = '<li style="padding: 10px; color: #999;">אין היסטוריית בדיקות</li>';
-            return;
-        }
-        
-        historyList.innerHTML = '';
-        
-        history.forEach(item => {
-            const li = document.createElement('li');
-            li.className = 'history-item';
-            
-            const statusClass = getStatusClass(item.status);
-            
-            const statusBadge = document.createElement('span');
-            statusBadge.className = `status-badge ${statusClass}`;
-            statusBadge.textContent = item.status;
-            
-            const urlSpan = document.createElement('span');
-            urlSpan.textContent = truncateUrl(item.url);
-            urlSpan.setAttribute('title', item.url);
-            
-            const timeSpan = document.createElement('span');
-            timeSpan.className = 'timestamp';
-            timeSpan.textContent = formatDate(new Date(item.timestamp));
-            
-            // הוסף קישור לבדיקה מחדש
-            li.appendChild(urlSpan);
-            li.appendChild(statusBadge);
-            li.appendChild(timeSpan);
-            
-            // הוסף אירוע לחיצה לטעינת הכתובת שוב
-            li.addEventListener('click', function() {
-                urlInput.value = item.url;
-                checkUrl();
-            });
-            
-            historyList.appendChild(li);
+            redirectChain.appendChild(redirectItem);
         });
     }
-    
-    function getStatusClass(status) {
-        if (status >= 200 && status < 300) return 'status-2xx';
-        if (status >= 300 && status < 400) return 'status-3xx';
-        if (status >= 400 && status < 500) return 'status-4xx';
-        if (status >= 500) return 'status-5xx';
-        return '';
-    }
-    
-    function truncateUrl(url) {
-        // הסר פרוטוקול ומקצר אם ארוך מדי
-        const noProtocol = url.replace(/^https?:\/\//, '');
-        if (noProtocol.length > 30) {
-            return noProtocol.substring(0, 27) + '...';
-        }
-        return noProtocol;
-    }
-    
-    function formatDate(date) {
-        // המר תאריך לפורמט קריא
-        return date.toLocaleString('he-IL', {
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit'
+}
         });
-    }
-    
-    function getStatusTextFromCode(code) {
-        // מחזיר תיאור טקסטואלי לקוד סטטוס
-        const statusTexts = {
-            200: 'OK',
-            201: 'Created',
-            204: 'No Content',
-            301: 'Moved Permanently',
-            302: 'Found',
-            304: 'Not Modified',
-            400: 'Bad Request',
-            401: 'Unauthorized',
-            403: 'Forbidden',
-            404: 'Not Found',
-            500: 'Internal Server Error',
-            501: 'Not Implemented',
-            502: 'Bad Gateway',
-            503: 'Service Unavailable'
-        };
-        
-        return statusTexts[code] || 'Unknown Status';
-    }
-    
-    // עדכן את מצב כפתור הניקוי בטעינה הראשונית
-    updateClearButtonState();
-});
     </script>
 </body>
 </html>
