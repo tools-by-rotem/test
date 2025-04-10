@@ -1,786 +1,966 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="robots" content="noindex,nofollow">    
-    <title>בודק סטטוס HTTP</title>
-    <link rel="stylesheet" href="footer.css">
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: Arial, sans-serif;
-        }
-        
-        body {
-            background-color: #f5f5f5;
-            padding: 0px;
-        }
-        
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            background-color: #fff;
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-        
-        h1 {
-            color: #333;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-        
-        .input-group {
-            margin-bottom: 20px;
-            display: flex;
-        }
-        
-        input[type="text"] {
-            flex: 1;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px 0 0 4px;
-            font-size: 16px;
-        }
-        
-        button {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            cursor: pointer;
-            border-radius: 0 4px 4px 0;
-            font-size: 16px;
-            transition: background-color 0.3s;
-        }
-        
-        button:hover {
-            background-color: #45a049;
-        }
-        
-        .result {
-            margin-top: 20px;
-            padding: 15px;
-            border-radius: 4px;
-            display: none;
-        }
-        
-        .success {
-            background-color: #dff0d8;
-            border: 1px solid #d6e9c6;
-            color: #3c763d;
-        }
-        
-        .error {
-            background-color: #f2dede;
-            border: 1px solid #ebccd1;
-            color: #a94442;
-        }
-        
-        .info {
-            background-color: #d9edf7;
-            border: 1px solid #bce8f1;
-            color: #31708f;
-        }
-        
-        .warning {
-            background-color: #fcf8e3;
-            border: 1px solid #faebcc;
-            color: #8a6d3b;
-        }
-        
-        .result-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-            font-weight: bold;
-        }
-        
-        .details {
-            margin-top: 10px;
-            border-top: 1px solid #ddd;
-            padding-top: 10px;
-        }
-        
-        .detail-item {
-            margin-bottom: 5px;
-        }
-        
-        .loader {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #3498db;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            animation: spin 2s linear infinite;
-            margin: 20px auto;
-            display: none;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        .history {
-            margin-top: 30px;
-        }
-        
-        .history-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-        
-        .history-header h2 {
-            margin: 0;
-            font-size: 18px;
-            color: #555;
-        }
-        
-        .clear-history-button {
-            background-color: #f44336;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            font-size: 14px;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        
-        .clear-history-button:hover {
-            background-color: #d32f2f;
-        }
-        
-        .clear-history-button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        
-        .history-list {
-            list-style: none;
-            padding: 0;
-        }
-        
-        .history-item {
-            padding: 10px;
-            border-bottom: 1px solid #eee;
-            display: flex;
-            justify-content: space-between;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-        
-        .history-item:hover {
-            background-color: #f9f9f9;
-        }
-        
-        .timestamp {
-            color: #999;
-            font-size: 14px;
-        }
-        
-        .status-badge {
-            padding: 3px 8px;
-            border-radius: 12px;
-            font-size: 12px;
-            color: white;
-            margin: 0 10px;
-        }
-        
-        .status-2xx {
-            background-color: #5cb85c;
-        }
-        
-        .status-3xx {
-            background-color: #5bc0de;
-        }
-        
-        .status-4xx {
-            background-color: #f0ad4e;
-        }
-        
-        .status-5xx {
-            background-color: #d9534f;
-        }
-        
-        .redirect-info {
-            margin-top: 10px;
-            padding: 10px;
-            background-color: #f8f9fa;
-            border-radius: 4px;
-            border-right: 4px solid #5bc0de;
-        }
-        
-        .redirect-chain {
-            margin-top: 5px;
-            padding-right: 15px;
-        }
-        
-        .redirect-arrow {
-            color: #5bc0de;
-            margin: 0 5px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex,nofollow">
+  <title>מותר לעלות עם זה לתחבורה הציבורית? | Tools by Rotem</title>
+  <meta name="description" content="רוצים לנסוע לים ולא בטוחים אם מותר להעלות גלשן לאוטובוס? נוסעים באופניים לרכבת אך לא בטוחים אם מותר לעלות איתן? בדקו את תנאי העלאת המטען לתחבורה הציבורית >>>">
+  <link rel="canonical" href="https://tools-by-rotem.github.io/webtools/public-transport-luggage" />
+  <link rel="icon" type="image/x-icon" href="/webtools/site-favicon.ico">
+  <style>
+    :root {
+      --primary-color: #1e88e5;
+      --secondary-color: #f5f5f5;
+      --border-color: #ddd;
+      --text-color: #333;
+      --text-light: #666;
+      --success-color: #4caf50;
+      --warning-color: #ff9800;
+      --danger-color: #f44336;
+      --box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', 'Arial', sans-serif;
+    }
+
+    body {
+      background-color: #f9f9f9;
+      color: var(--text-color);
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    h1 {
+      font-size: 2.2rem;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .subtitle {
+      font-size: 1.1rem;
+      font-weight: normal;
+      text-align: center;
+      padding-bottom: 20px;
+    }
+
+    .step-container {
+      display: none;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: var(--box-shadow);
+      padding: 20px;
+      margin-bottom: 30px;
+      animation: fadeIn 0.3s ease-in;
+    }
+
+    .step-container.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .step-title {
+      font-size: 1.2rem;
+      margin-bottom: 15px;
+      color: var(--primary-color);
+    }
+
+    .step-number {
+      display: inline-block;
+      width: 30px;
+      height: 30px;
+      background-color: var(--primary-color);
+      color: white;
+      border-radius: 50%;
+      text-align: center;
+      line-height: 30px;
+      margin-left: 10px;
+    }
+
+    .selector-options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-bottom: 15px;
+    }
+
+    .selector-option {
+      flex: 1;
+      min-width: 200px;
+      padding: 15px;
+      background-color: var(--secondary-color);
+      border: 1px solid var(--border-color);
+      border-radius: 5px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .selector-option:hover {
+      background-color: #e0e0e0;
+    }
+
+    .selector-option.selected {
+      background-color: var(--primary-color);
+      color: white;
+      border-color: var(--primary-color);
+    }
+
+    .navigation-buttons {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 20px;
+    }
+
+    /* מרכוז כפתורים בשלב 1 ו-3 */
+    #step1 .navigation-buttons,
+    #results .navigation-buttons {
+      justify-content: center;
+    }
+
+    /* שמירת כפתורים בצדדים בשלב 2 */
+    #step2 .navigation-buttons {
+      justify-content: space-between;
+    }
+
+    .nav-button {
+      padding: 10px 20px;
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .nav-button:disabled {
+      background-color: var(--border-color);
+      cursor: not-allowed;
+    }
+
+    .nav-button:hover:not(:disabled) {
+      background-color: #1565c0;
+    }
+
+    .results-container {
+      display: none;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: var(--box-shadow);
+      padding: 20px;
+      margin-bottom: 30px;
+      animation: fadeIn 0.3s ease-in;
+    }
+
+    .results-title {
+      font-size: 1.3rem;
+      margin-bottom: 15px;
+      color: var(--primary-color);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .results-icon {
+      font-size: 1.5rem;
+    }
+
+    .results-info {
+      margin-bottom: 15px;
+      padding: 15px;
+      border-radius: 5px;
+      background-color: var(--secondary-color);
+    }
+
+    .result-item {
+      padding: 15px;
+      margin-bottom: 10px;
+      border-radius: 5px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .result-allowed {
+      background-color: rgba(76, 175, 80, 0.1);
+      border-left: 4px solid var(--success-color);
+    }
+
+    .result-conditional {
+      background-color: rgba(255, 152, 0, 0.1);
+      border-left: 4px solid var(--warning-color);
+    }
+
+    .result-denied {
+      background-color: rgba(244, 67, 54, 0.1);
+      border-left: 4px solid var(--danger-color);
+    }
+
+    .result-icon {
+      font-size: 1.5rem;
+      flex-shrink: 0;
+    }
+
+    .result-content {
+      flex-grow: 1;
+    }
+
+    .result-title {
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .result-details {
+      font-size: 0.95rem;
+      color: var(--text-light);
+    }
+
+    .guidelines {
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: var(--box-shadow);
+      padding: 20px;
+      margin-top: 40px;
+    }
+
+    .guidelines-section {
+      margin-bottom: 30px;
+    }
+
+    .guidelines-section:last-child {
+      margin-bottom: 0;
+    }
+
+    .guidelines-title {
+      font-size: 1.5rem;
+      color: var(--primary-color);
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .section-title {
+      font-size: 1.3rem;
+      color: var(--primary-color);
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--secondary-color);
+    }
+
+    .guidelines-list {
+      list-style-type: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .guidelines-list li {
+      margin-bottom: 8px;
+      padding-right: 20px;
+      position: relative;
+    }
+
+    .guidelines-list li::before {
+      content: "•";
+      color: var(--primary-color);
+      font-weight: bold;
+      position: absolute;
+      right: 0;
+    }
+    
+    .main-header {
+    background-color: #2d3436;
+    color: white;
+    padding: 1rem 0;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.header-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.logo img {
+    height: 60px;
+    width: auto;
+}
+
+.main-footer {
+    background-color: #2d3436;
+    color: white;
+    padding: 3rem 0 1.5rem;
+    margin-top: 4rem;
+}
+
+.footer-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2rem;
+    text-align: center;
+}
+
+.footer-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    align-items: center;
+}
+
+.footer-section p {
+    color: white;
+    margin-bottom: 1rem;
+    font-weight: bold;
+    width: 100%;
+    text-align: center;
+}
+
+.footer-section ul {
+    list-style: none;
+    width: 100%;
+    text-align: center;
+}
+
+.footer-section ul li {
+    margin-bottom: 0.5rem;
+}
+
+.footer-section a {
+    color: #ddd;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.footer-section a:hover {
+    color: #0984e3;
+}
+
+.social-icons {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    width: 100%;
+}
+
+.social-icons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    width: 100%;
+}
+
+.social-icons img {
+    width: 24px;
+    height: 24px;
+    transition: opacity 0.3s ease;
+}
+
+.social-icons a:hover img {
+    opacity: 0.8;
+}
+
+.footer-bottom {
+    text-align: center;
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid #444;
+}
+
+    @media (max-width: 768px) {
+      .selector-option {
+        min-width: 150px;
+      }
+      
+      .footer-container {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .footer-section {
+                align-items: center;
+            }
+            
+            h1 {
+    font-size: 1.8rem; /* מקטין מעט את גודל הכותרת במובייל */
+  }
+  
+  h1 .mobile-break {
+    display: block; /* גורם לאלמנט להופיע בשורה חדשה */
+    margin-top: 5px; /* מרווח קטן בין השורות */
+  }
+    }
+    
+    @media (min-width: 769px) {
+  h1 .mobile-break {
+    display: inline; /* במסכים גדולים, האלמנט יופיע באותה שורה */
+  }
+}
+
+    @media (max-width: 576px) {
+      .container {
+        padding: 10px;
+      }
+      
+      .selector-options {
+        flex-direction: column;
+      }
+      
+      .selector-option {
+        width: 100%;
+      }
+      
+      .footer-container {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .footer-section {
+                align-items: center;
+            }
+    }
+  </style>
+  <script src="https://website-widgets.pages.dev/dist/sienna.min.js" defer></script>
 </head>
 <body>
-    <div class="container">
-        <h1>בודק סטטוס HTTP</h1>
-        
-        <div class="input-group">
-            <input type="text" id="urlInput" placeholder="הכנס כתובת URL לבדיקה (כולל http:// או https://)" dir="ltr">
-            <button id="checkButton">בדוק</button>
+  <header class="main-header">
+        <div class="header-container">
+            <a href="https://tools-by-rotem.github.io/webtools/" class="logo">
+                <img src="https://tools-by-rotem.github.io/webtools/site-logo.png" alt="רותם קנון לוגו">
+            </a>
         </div>
-        
-        <div class="loader" id="loader"></div>
-        
-        <div class="result" id="result">
-            <div class="result-header">
-                <span id="statusText"></span>
-                <span id="statusCode"></span>
-            </div>
-            <div class="details">
-                <div class="detail-item">כתובת URL: <span id="urlText" dir="ltr"></span></div>
-                <div class="detail-item">זמן תגובה: <span id="responseTime"></span> ms</div>
-                <div class="detail-item">סוג תוכן: <span id="contentType"></span></div>
-                <div class="detail-item">שרת: <span id="server"></span></div>
-                <div class="detail-item">תאריך: <span id="date"></span></div>
-                <div id="redirectInfo" class="redirect-info" style="display: none">
-                    <div><strong>שרשרת הפניות:</strong></div>
-                    <div id="redirectChain" class="redirect-chain"></div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="history">
-            <div class="history-header">
-                <h2>היסטוריית בדיקות</h2>
-            </div>
-            <ul class="history-list" id="historyList"></ul>
-        </div>
+    </header>
+    
+  <div class="container">
+    <h1>העלאת מטען<span class="mobile-break"> לתחבורה ציבורית</span></h1>
+    <p class="subtitle">בחרו את אמצעי התחבורה ואת סוג המטען כדי לבדוק האם ניתן להעלות אותו</p>
+
+    <div id="step1" class="step-container active">
+      <h2 class="step-title"><span class="step-number">1</span>בחרו את אמצעי התחבורה הציבורית:</h2>
+      <div class="selector-options" id="transport-options">
+        <div class="selector-option" data-transport="train">רכבת ישראל</div>
+        <div class="selector-option" data-transport="light-rail">רכבת קלה</div>
+        <div class="selector-option" data-transport="inter-city-bus">אוטובוס בינעירוני</div>
+        <div class="selector-option" data-transport="city-bus">אוטובוס עירוני</div>
+      </div>
+      <div class="navigation-buttons">
+        <button class="nav-button" id="nextToStep2" disabled>הבא</button>
+      </div>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const urlInput = document.getElementById('urlInput');
-            const checkButton = document.getElementById('checkButton');
-            const result = document.getElementById('result');
-            const statusText = document.getElementById('statusText');
-            const statusCode = document.getElementById('statusCode');
-            const urlText = document.getElementById('urlText');
-            const responseTime = document.getElementById('responseTime');
-            const contentType = document.getElementById('contentType');
-            const server = document.getElementById('server');
-            const date = document.getElementById('date');
-            const loader = document.getElementById('loader');
-            const historyList = document.getElementById('historyList');
-            const redirectInfo = document.getElementById('redirectInfo');
-            const redirectChain = document.getElementById('redirectChain');
+    <div id="step2" class="step-container">
+      <h2 class="step-title"><span class="step-number">2</span>בחרו את סוג המטען:</h2>
+      <div class="selector-options" id="cargo-options">
+        <div class="selector-option" data-cargo="folding-bike">אופניים מתקפלים</div>
+        <div class="selector-option" data-cargo="regular-bike">אופניים רגילים</div>
+        <div class="selector-option" data-cargo="folding-scooter">קורקינט מקופל</div>
+        <div class="selector-option" data-cargo="regular-scooter">קורקינט לא מקופל</div>
+        <div class="selector-option" data-cargo="surfboard">גלשן</div>
+        <div class="selector-option" data-cargo="pet">חיית מחמד</div>
+        <div class="selector-option" data-cargo="luggage">מזוודה/תיק</div>
+        <div class="selector-option" data-cargo="stroller">עגלת תינוק</div>
+      </div>
+      <div class="navigation-buttons">
+        <button class="nav-button" id="backToStep1">חזרה</button>
+        <button class="nav-button" id="showResults" disabled>הצגת הנחיות</button>
+      </div>
+    </div>
 
-            const historyHeader = document.querySelector('.history-header');
-            const clearHistoryButton = document.createElement('button');
-            clearHistoryButton.className = 'clear-history-button';
-            clearHistoryButton.textContent = 'נקה היסטוריה';
-            historyHeader.appendChild(clearHistoryButton);
+    <div id="results" class="results-container">
+      <div class="results-title">
+        <span class="results-icon" id="results-icon"></span>
+        <h2 id="results-title">הנחיות</h2>
+      </div>
+      <div class="results-info" id="results-info"></div>
+      <div id="results-details"></div>
+      <div class="navigation-buttons">
+        <button class="nav-button" id="startOver">התחלה מחדש</button>
+      </div>
+    </div>
 
-            checkButton.addEventListener('click', checkUrl);
-            urlInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    checkUrl();
-                }
-            });
-            clearHistoryButton.addEventListener('click', clearHistory);
+    <div class="guidelines">
+      <h2 class="guidelines-title">הנחיות כלליות להעלאת מטען לתחבורה הציבורית</h2>
+      
+      <div class="guidelines-section">
+        <h3 class="section-title">רכבת ישראל</h3>
+        <ul class="guidelines-list">
+          <li>אופניים מתקפלים – מותר להעלותם בכל שעות הפעילות, אך ורק בקרון הדרומי הייעודי לאופניים.</li>
+          <li>אופניים רגילים – מותר להעלות רק בשעות לא עמוסות:
+          <br>ימים א’-ה’: בין 09:00–15:00 ובין 19:00–06:00
+          <br>ימי שישי וערבי חג – בכל שעות הפעילות
+          <br>מוצ"ש – אסור
+          <br>העלאה רק בקרון הדרומי.
+          </li>
+          <li>קורקינט מקופל – מותר בכל שעות הפעילות, אך ורק בקרון הדרומי הייעודי.</li>
+          <li>קורקינט רגיל – מותר רק בשעות הלא עמוסות (כמו אופניים רגילים), ורק בקרון הדרומי.</li>
+          <li>גלשן – אסור להעלות לרכבת בכל מקרה.</li>
+          <li>חיית מחמד – מותרת בתנאים: חייבת להיות קשורה, עם מחסום פה. חיות קטנות מותרות בכלוב/תיק סגור.</li>
+          <li>מזוודות – מותרות, כל עוד לא חוסמות מעברים או מפריעות לנוסעים.</li>
+          <li>עגלת תינוק – מותרת. בשעות העומס – ייתכן ותתבקשו לקפל את העגלה.</li>
+        </ul>
+      </div>
 
-            loadHistory();
+      <div class="guidelines-section">
+        <h3 class="section-title">רכבת קלה</h3>
+        <ul class="guidelines-list">
+          <li>אופניים מתקפלים – מותר להעלות בכל שעות הפעילות. יש להחזיקם צמוד לנוסע, ניתן להכניס בתיק או בלעדיו.</li>
+          <li>אופניים רגילים – אסור להעלות לרכבת הקלה בכל מקרה.</li>
+          <li>קורקינט מקופל – מותר כל עוד הוא מוחזק צמוד לנוסע ואינו חוסם מעברים.</li>
+          <li>קורקינט רגיל – אסור להעלות.</li>
+          <li>גלשן – אסור.</li>
+          <li>חיית מחמד – מותרת אם היא קטנה, קשורה, ובעלת מחסום פה. יש להחזיק אותה צמוד לנוסע.</li>
+          <li>מזוודות – מותרות כל עוד אינן מפריעות לנוסעים.</li>
+          <li>עגלת תינוק – מותרת. ייתכן ותתבקשו לקפל אותה בשעות עומס.</li>
+        </ul>
+      </div>
 
-            async function checkUrl() {
-    const url = urlInput.value.trim();
-    
-    if (!url) {
-        showError('נא להזין כתובת URL');
-        return;
-    }
+      <div class="guidelines-section">
+        <h3 class="section-title">אוטובוסים בינעירוניים</h3>
+        <ul class="guidelines-list">
+          <li>אופניים מתקפלים – מותר להכניס לתא המטען בלבד. אסור להעלותם לתוך האוטובוס.</li>
+          <li>אופניים רגילים – מותר להכניס לתא המטען בלבד. הנהג רשאי לסרב אם הם מלוכלכים או גדולים מדי.</li>
+          <li>קורקינט מקופל – מותר להכניס לתא המטען בלבד.</li>
+          <li>קורקינט רגיל – מותר להכניס לתא המטען בלבד.</li>
+          <li>גלשן – מותר להכניס לתא המטען, אם יש מקום.</li>
+          <li>חיית מחמד – מותרת אם היא קטנה, מוחזקת על הברכיים או בידיים, קשורה ובעלת מחסום פה.</li>
+          <li>מזוודות – תיקים קטנים ניתן לקחת פנימה, תיקים גדולים – בתא המטען.</li>
+          <li>עגלת תינוק – מותרת כשהיא מקופלת. הנהג רשאי לסרב אם צפוף.</li>
+        </ul>
+      </div>
 
-    if (!url.startsWith('http://') && !url.startsWith('https://')) {
-        showError('כתובת URL חייבת להתחיל ב-http:// או https://');
-        return;
-    }
+      <div class="guidelines-section">
+        <h3 class="section-title">אוטובוסים עירוניים</h3>
+        <ul class="guidelines-list">
+          <li>אופניים מתקפלים – מותר רק אם הם מקופלים לגמרי ונמצאים בתוך תיק ייעודי. אסור אם מלוכלכים.</li>
+          <li>אופניים רגילים – אסור בכל מקרה.</li>
+          <li>קורקינט מקופל – מותר כל עוד הוא מקופל לגמרי ואינו מלכלך.</li>
+          <li>קורקינט רגיל – אסור בכל מקרה.</li>
+          <li>גלשן – אסור בכל מקרה.</li>
+          <li>חיית מחמד – מותרת רק אם קטנה, מוחזקת על הברכיים, קשורה ובעלת מחסום פה. כלבי שירות מורשים – כן.</li>
+          <li>מזוודות – מותר רק מטען יד שלא מפריע לנוסעים או מלכלך את האוטובוס.</li>
+          <li>עגלת תינוק – מותרת כשהיא מקופלת. הנהג רשאי לסרב אם האוטובוס עמוס.</li>
+        </ul>
+      </div>
 
-    result.style.display = 'none';
-    loader.style.display = 'block';
-    redirectInfo.style.display = 'none';
+      <div class="guidelines-section">
+        <h3 class="section-title">הנחיות כלליות למטען נוסף</h3>
+        <ul class="guidelines-list">
+          <li>אסור להעלות דברים שעלולים ללכלך, לפגוע באדם או מפיצים ריחות רעים</li>
+          <li>אסור להעלות חומרי נפץ ונשק טעון</li>
+          <li>מותר להעלות חיות מחמד קטנות כשהן קשורות ועם מחסום פה</li>
+          <li>נוסע רשאי לקחת מטען יד ללא תשלום נוסף כל עוד אינו מפריע לנוסעים אחרים</li>
+        </ul>
+        <p>המידע מבוסס על הנחיות רשמיות של רכבת ישראל, חברות האוטובוסים ונהלי משרד התחבורה. ההחלטה הסופית נתונה לשיקול דעת צוות התחבורה הציבורית. מומלץ לבדוק את ההנחיות באתרים הרשמיים של חברות התחבורה הציבורים.</p>
+      </div>
+    </div>
+  </div>
+  
+  <footer class="main-footer">
+        <div class="footer-container">
+            <div class="footer-section">
+                <p>רשתות חברתיות</p>
+                <div class="social-icons">
+                    <a href="https://www.linkedin.com/in/rotem-kanon" target="_blank">
+                        <img src="https://cdn-icons-png.flaticon.com/512/145/145807.png" alt="LinkedIn">
+                    </a>
+                    <a href="https://github.com/tools-by-rotem" target="_blank">
+                        <img src="https://cdn-icons-png.flaticon.com/512/2111/2111432.png" alt="GitHub">
+                    </a>
+                </div>
+            </div>
+            <div class="footer-section">
+                <p>ניווט באתר</p>
+                <ul>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/">ספריית הכלים</a></li>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/accessibility-statement">הצהרת נגישות</a></li>
+		    <li><a href="https://tools-by-rotem.github.io/webtools/sitemap">מפת אתר</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <p>כמויות חיפושים</p>
+                <ul>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/google-search-volume">כמות חיפושים בגוגל</a></li>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/spotify-search-volume">כמות חיפושים בספוטיפיי</a></li>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/soundcloud-search-volume">כמות חיפושים בסאונדקלאוד </a></li>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/competitors-traffic">חישוב תנועה לאתרי מתחרים </a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <p>תצוגה מקדימה</p>
+                <ul>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/open-graph-checker">בדיקת Open Graph</a></li>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/google-serp-preview">תצוגה מקדימה לנראות בגוגל</a></li>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/social-link-preview">תצוגה מקדימה לרשתות חברתיות</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <p>אופטימיזציה</p>
+                <ul>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/page-speed-test">בדיקת מהירות טעינה</a></li>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/mobile-simulator">בדיקת תאימות למכשירים ניידים</a></li>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/image-minify-converter">המרת פורמט וכיווץ משקל תמונה</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <p>יצירה ועיצוב</p>
+                <ul>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/background-remover">הסרת רקע מתמונה</a></li>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/draw">ציור אינטראקטיבי</a></li>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/image-color-identifier">זיהוי צבעי תמונה</a></li>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/infographics">יצירת אינפוגרפיקות</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <p>נגישות</p>
+                <ul>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/accessibility-toolbar">סרגל נגישות</a></li>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/accessibility-checker">בדיקת נגישות לאתר אינטרנט</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <p>שונות</p>
+                <ul>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/navigation-links-generator">מחולל קישורי ניווט</a></li>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/reverse-typing-fix">תיקון הקלדה הפוכה</a></li>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/strong-password-generator">מחולל סיסמאות חזקות</a></li>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/time-to-go-home">הגיע הזמן ללכת הביתה</a></li>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/resume-scanner">התאמת קורות חיים לסורקים אוטומטיים</a></li>
+		    <li><a href="https://tools-by-rotem.github.io/webtools/time-zone-converter">המרת זמן בינלאומי</a></li>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/fahrenheit-to-celsius">המרת פרנהייט לצלזיוס</a></li>
+		    <li><a href="https://tools-by-rotem.github.io/webtools/screen-size-checker">בדיקת גודל מסך</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2025 כל הזכויות שמורות לרותם קנון</p>
+        </div>
+    </footer>
 
-    const startTime = Date.now();
-    
-    try {
-        // נסיון ראשון: שימוש ב-cors-anywhere (אם זמין)
-        await checkWithCorsAnywhere(url, startTime);
-    } catch (error) {
-        console.log("CORS Anywhere failed, trying AllOrigins");
-        try {
-            // נסיון שני: שימוש ב-allorigins
-            await checkWithAllOrigins(url, startTime);
-        } catch (error) {
-            console.log("AllOrigins failed, trying JSONp");
-            try {
-                // נסיון שלישי: שימוש ב-jsonp.afeld.me
-                await checkWithJsonp(url, startTime);
-            } catch (error) {
-                console.log("All methods failed, using fallback");
-                // נסיון אחרון: שימוש בשיטת החילוץ
-                await fallbackCheckMethod(url, startTime);
-            }
-        }
-    }
-}
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Variables to store selections
+      let selectedTransport = null;
+      let selectedCargo = null;
 
-// פונקציה לבדיקה באמצעות CORS Anywhere
-async function checkWithCorsAnywhere(url, startTime) {
-    const corsAnywhereUrl = 'https://cors-anywhere.herokuapp.com/';
-    const response = await fetch(corsAnywhereUrl + url, {
-        method: 'GET',
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest'
+      // Data for the transport rules
+      const transportRules = {
+        train: {
+          'folding-bike': {
+            allowed: true,
+            title: 'מותר בכל שעות הפעילות',
+            details: 'אופניים מתקפלים מותרים ברכבת ישראל בכל שעות הפעילות. יש להעלותם רק לקרון הדרומי הייעודי.'
+          },
+          'regular-bike': {
+            allowed: 'conditional',
+            title: 'מותר בשעות מסוימות בלבד',
+            details: 'אופניים רגילים מותרים בימים א\'-ה\' בין 09:00-15:00 ובין 19:00-06:00 למחרת, ובימי ו\' וערבי חג בכל שעות הפעילות. במוצ"ש ומוצאי חג לא ניתן להעלות אופניים רגילים. יש להעלותם רק לקרון הדרומי הייעודי.'
+          },
+          'folding-scooter': {
+            allowed: true,
+            title: 'מותר בכל שעות הפעילות',
+            details: 'קורקינט מקופל מותר ברכבת בכל שעות הפעילות. יש להעלותו רק לקרון הדרומי הייעודי.'
+          },
+          'regular-scooter': {
+            allowed: 'conditional',
+            title: 'מותר בשעות מסוימות בלבד',
+            details: 'קורקינט לא מקופל מותר בשעות השפל בלבד, כמו אופניים רגילים. יש להעלותו רק לקרון הדרומי הייעודי.'
+          },
+          'surfboard': {
+            allowed: false,
+            title: 'אסור',
+            details: 'לא ניתן להעלות גלשן לרכבת ישראל.'
+          },
+          'pet': {
+            allowed: 'conditional',
+            title: 'מותר בתנאים מסוימים',
+            details: 'ניתן להעלות חיות מחמד קטנות כשהן קשורות ועם מחסום פה. בעל חיים גדול יותר יש להעלות עם מחסום פה וקשור ברצועה.'
+          },
+          'luggage': {
+            allowed: true,
+            title: 'מותר',
+            details: 'ניתן להעלות מזוודות ותיקים לרכבת ישראל ללא הגבלה, כל עוד אינם מפריעים לשאר הנוסעים.'
+          },
+          'stroller': {
+            allowed: true,
+            title: 'מותר',
+            details: 'ניתן להעלות עגלת תינוק לרכבת ישראל. ייתכן ותתבקשו לקפל את העגלה בשעות העומס.'
+          }
         },
-        redirect: 'manual'
-    });
-    
-    const endTime = Date.now();
-    const responseTimeValue = endTime - startTime;
-    
-    if (response.status >= 300 && response.status < 400) {
-        const redirectChain = await followRedirects(url);
-        displayResult(
-            response.status,
-            getStatusTextFromCode(response.status),
-            url,
-            responseTimeValue,
-            response.headers.get('content-type') || 'לא זמין',
-            response.headers.get('server') || 'לא זמין',
-            formatDate(new Date()),
-            redirectChain
-        );
-    } else {
-        displayResult(
-            response.status,
-            getStatusTextFromCode(response.status),
-            url,
-            responseTimeValue,
-            response.headers.get('content-type') || 'לא זמין',
-            response.headers.get('server') || 'לא זמין',
-            formatDate(new Date())
-        );
-    }
-    
-    saveToHistory(url, response.status, responseTimeValue);
-}
-
-// פונקציה לבדיקה באמצעות AllOrigins
-async function checkWithAllOrigins(url, startTime) {
-    const allOriginsUrl = 'https://api.allorigins.win/get?url=';
-    const response = await fetch(allOriginsUrl + encodeURIComponent(url));
-    
-    if (!response.ok) {
-        throw new Error('AllOrigins request failed');
-    }
-    
-    const data = await response.json();
-    const endTime = Date.now();
-    const responseTimeValue = endTime - startTime;
-    
-    const statusCode = data.status ? data.status.http_code : 200;
-    
-    displayResult(
-        statusCode,
-        getStatusTextFromCode(statusCode),
-        url,
-        responseTimeValue,
-        data.status && data.status.content_type || 'לא זמין',
-        'לא זמין',
-        formatDate(new Date())
-    );
-    
-    saveToHistory(url, statusCode, responseTimeValue);
-}
-
-// פונקציה לבדיקה באמצעות JSONp
-async function checkWithJsonp(url, startTime) {
-    const jsonpUrl = 'https://jsonp.afeld.me/?url=';
-    const response = await fetch(jsonpUrl + encodeURIComponent(url));
-    
-    if (!response.ok) {
-        throw new Error('JSONp request failed');
-    }
-    
-    const endTime = Date.now();
-    const responseTimeValue = endTime - startTime;
-    
-    displayResult(
-        response.status,
-        getStatusTextFromCode(response.status),
-        url,
-        responseTimeValue,
-        response.headers.get('content-type') || 'לא זמין',
-        'לא זמין',
-        formatDate(new Date())
-    );
-    
-    saveToHistory(url, response.status, responseTimeValue);
-}
-
-// פונקציית גיבוי לבדיקת סטטוס
-async function fallbackCheckMethod(url, startTime) {
-    return new Promise((resolve, reject) => {
-        const img = new Image();
-        const timeout = setTimeout(() => {
-            const endTime = Date.now();
-            const responseTimeValue = endTime - startTime;
-            
-            displayResult(
-                404,
-                'Not Found (Fallback)',
-                url,
-                responseTimeValue,
-                'לא זמין',
-                'לא זמין',
-                formatDate(new Date())
-            );
-            
-            saveToHistory(url, 404, responseTimeValue);
-            resolve();
-        }, 5000);
-        
-        img.onload = () => {
-            clearTimeout(timeout);
-            const endTime = Date.now();
-            const responseTimeValue = endTime - startTime;
-            
-            displayResult(
-                200,
-                'OK (Fallback)',
-                url,
-                responseTimeValue,
-                'image/*',
-                'לא זמין',
-                formatDate(new Date())
-            );
-            
-            saveToHistory(url, 200, responseTimeValue);
-            resolve();
-        };
-        
-        img.onerror = () => {
-            clearTimeout(timeout);
-            
-            // נסה לבדוק באמצעות XMLHttpRequest
-            const xhr = new XMLHttpRequest();
-            xhr.open('GET', url, true);
-            xhr.timeout = 5000;
-            
-            xhr.onload = () => {
-                const endTime = Date.now();
-                const responseTimeValue = endTime - startTime;
-                
-                displayResult(
-                    xhr.status,
-                    getStatusTextFromCode(xhr.status),
-                    url,
-                    responseTimeValue,
-                    xhr.getResponseHeader('Content-Type') || 'לא זמין',
-                    'לא זמין',
-                    formatDate(new Date())
-                );
-                
-                saveToHistory(url, xhr.status, responseTimeValue);
-                resolve();
-            };
-            
-            xhr.ontimeout = xhr.onerror = () => {
-                const endTime = Date.now();
-                const responseTimeValue = endTime - startTime;
-                
-                // נסה לבדוק אם זה 404 או שגיאה אחרת
-                fetch(url, { mode: 'no-cors' })
-                    .then(() => {
-                        displayResult(
-                            200,
-                            'OK (Fallback)',
-                            url,
-                            responseTimeValue,
-                            'לא זמין',
-                            'לא זמין',
-                            formatDate(new Date())
-                        );
-                        
-                        saveToHistory(url, 200, responseTimeValue);
-                        resolve();
-                    })
-                    .catch(() => {
-                        displayResult(
-                            404,
-                            'Not Reachable (Fallback)',
-                            url,
-                            responseTimeValue,
-                            'לא זמין',
-                            'לא זמין',
-                            formatDate(new Date())
-                        );
-                        
-                        saveToHistory(url, 404, responseTimeValue);
-                        resolve();
-                    });
-            };
-            
-            try {
-                xhr.send();
-            } catch (e) {
-                const endTime = Date.now();
-                const responseTimeValue = endTime - startTime;
-                
-                displayResult(
-                    0,
-                    'Connection Error',
-                    url,
-                    responseTimeValue,
-                    'לא זמין',
-                    'לא זמין',
-                    formatDate(new Date())
-                );
-                
-                saveToHistory(url, 0, responseTimeValue);
-                resolve();
-            }
-        };
-        
-        img.src = url;
-    });
-}
-
-// שיפור פונקציית מעקב אחרי הפניות
-async function followRedirects(url, maxRedirects = 10) {
-    // שימוש ב-3 שירותי proxy לזיהוי הפניות
-    const proxies = [
-        'https://cors-anywhere.herokuapp.com/',
-        'https://api.allorigins.win/get?url=',
-        'https://jsonp.afeld.me/?url='
-    ];
-    
-    const chain = [];
-    let currentUrl = url;
-    
-    for (let i = 0; i < maxRedirects; i++) {
-        let redirectDetected = false;
-        
-        // נסה את כל השירותים עד שאחד מהם עובד
-        for (const proxy of proxies) {
-            try {
-                if (proxy.includes('allorigins')) {
-                    // טיפול מיוחד ל-allorigins
-                    const response = await fetch(proxy + encodeURIComponent(currentUrl));
-                    const data = await response.json();
-                    
-                    if (!data.status) continue;
-                    
-                    const statusCode = data.status.http_code;
-                    chain.push({
-                        url: currentUrl,
-                        status: statusCode
-                    });
-                    
-                    if (statusCode >= 300 && statusCode < 400) {
-                        const headers = data.status.headers;
-                        const location = headers.Location || headers.location;
-                        
-                        if (!location) break;
-                        
-                        currentUrl = new URL(location, currentUrl).href;
-                        redirectDetected = true;
-                        break;
-                    } else {
-                        // אם לא נמצאה הפניה, סיים את השרשרת
-                        return chain.length > 1 ? chain : null;
-                    }
-                } else {
-                    // שימוש רגיל בשירותי proxy
-                    const response = await fetch(proxy + currentUrl, {
-                        method: 'HEAD',
-                        redirect: 'manual',
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest'
-                        }
-                    });
-                    
-                    chain.push({
-                        url: currentUrl,
-                        status: response.status
-                    });
-                    
-                    if (response.status >= 300 && response.status < 400) {
-                        const location = response.headers.get('location');
-                        if (!location) break;
-                        
-                        currentUrl = new URL(location, currentUrl).href;
-                        redirectDetected = true;
-                        break;
-                    } else {
-                        // אם לא נמצאה הפניה, סיים את השרשרת
-                        return chain.length > 1 ? chain : null;
-                    }
-                }
-            } catch (error) {
-                continue;
-            }
+        'light-rail': {
+          'folding-bike': {
+            allowed: true,
+            title: 'מותר בכל שעות הפעילות',
+            details: 'אופניים מתקפלים מותרים ברכבת הקלה בכל שעות הפעילות, עם או בלי תיק אחסון. הנוסע חייב להשאיר את האופניים צמודים אליו במשך כל הנסיעה.'
+          },
+          'regular-bike': {
+            allowed: false,
+            title: 'אסור',
+            details: 'אסור להעלות אופניים רגילים (לא מתקפלים) לרכבת הקלה בשום מקרה.'
+          },
+          'folding-scooter': {
+            allowed: true,
+            title: 'מותר',
+            details: 'קורקינט מקופל מותר ברכבת הקלה. הנוסע חייב להשאיר את הקורקינט צמוד אליו במשך כל הנסיעה.'
+          },
+          'regular-scooter': {
+            allowed: false,
+            title: 'אסור',
+            details: 'אסור להעלות קורקינט לא מקופל לרכבת הקלה.'
+          },
+          'surfboard': {
+            allowed: false,
+            title: 'אסור',
+            details: 'לא ניתן להעלות גלשן לרכבת הקלה.'
+          },
+          'pet': {
+            allowed: 'conditional',
+            title: 'מותר בתנאים מסוימים',
+            details: 'ניתן להעלות חיות מחמד קטנות כשהן קשורות ועם מחסום פה.'
+          },
+          'luggage': {
+            allowed: true,
+            title: 'מותר',
+            details: 'ניתן להעלות מזוודות ותיקים לרכבת הקלה, כל עוד אינם מפריעים לשאר הנוסעים.'
+          },
+          'stroller': {
+            allowed: true,
+            title: 'מותר',
+            details: 'ניתן להעלות עגלת תינוק לרכבת הקלה. ייתכן ותתבקשו לקפל את העגלה בשעות העומס.'
+          }
+        },
+        'inter-city-bus': {
+          'folding-bike': {
+            allowed: 'conditional',
+            title: 'מותר בתא המטען בלבד',
+            details: 'אופניים מתקפלים אסורים בתוך האוטובוס, אך ניתן להכניסם לתאי המטען ללא תשלום נוסף.'
+          },
+          'regular-bike': {
+            allowed: 'conditional',
+            title: 'מותר בתא המטען בלבד',
+            details: 'אופניים רגילים אסורים בתוך האוטובוס, אך ניתן להכניסם לתאי המטען ללא תשלום נוסף. הנהג רשאי לסרב להכניס אופניים מלוכלכים או גדולים במיוחד לתא המטען.'
+          },
+          'folding-scooter': {
+            allowed: 'conditional',
+            title: 'מותר בתא המטען בלבד',
+            details: 'קורקינט מקופל אסור בתוך האוטובוס, אך ניתן להכניסו לתאי המטען ללא תשלום נוסף.'
+          },
+          'regular-scooter': {
+            allowed: 'conditional',
+            title: 'מותר בתא המטען בלבד',
+            details: 'קורקינט לא מקופל אסור בתוך האוטובוס, אך ניתן להכניסו לתאי המטען ללא תשלום נוסף.'
+          },
+          'surfboard': {
+            allowed: 'conditional',
+            title: 'מותר בתא המטען בלבד',
+            details: 'גלשן אסור בתוך האוטובוס, אך ניתן להכניסו לתאי המטען ללא תשלום נוסף, בתנאי שיש מקום.'
+          },
+          'pet': {
+            allowed: 'conditional',
+            title: 'מותר בתנאים מסוימים',
+            details: 'ניתן להעלות חיות מחמד קטנות כשהן קשורות ברצועה ומצוידות במחסום פה, מונחות על הברכיים או מוחזקות על הידיים.'
+          },
+          'luggage': {
+            allowed: true,
+            title: 'מותר',
+            details: 'ניתן להעלות מזוודות ותיקים קטנים לאוטובוס. תיקים גדולים ומזוודות יש להכניס לתאי המטען.'
+          },
+          'stroller': {
+            allowed: 'conditional',
+            title: 'מותר כשמקופלת',
+            details: 'ניתן להעלות עגלת תינוק מקופלת. הנהג רשאי לסרב להעלות את העגלה מנימוקי צפיפות.'
+          }
+        },
+        'city-bus': {
+          'folding-bike': {
+            allowed: 'conditional',
+            title: 'מותר בתנאים מסוימים',
+            details: 'אופניים מתקפלים מותרים רק אם הם מקופלים לחלוטין ומוכנסים לתוך תיק. הנהג רשאי לסרב להעלותם אם הם מלוכלכים או עלולים ללכלך את האוטובוס או את הנוסעים.'
+          },
+          'regular-bike': {
+            allowed: false,
+            title: 'אסור',
+            details: 'חל איסור מוחלט להכניס אופניים לא מתקפלים (רגילים) לאוטובוס עירוני.'
+          },
+          'folding-scooter': {
+            allowed: 'conditional',
+            title: 'מותר כשמקופל לחלוטין',
+            details: 'קורקינט מקופל מותר באוטובוס עירוני בתנאי שהוא מקופל לחלוטין ואינו מלוכלך.'
+          },
+          'regular-scooter': {
+            allowed: false,
+            title: 'אסור',
+            details: 'חל איסור מוחלט להעלות קורקינט לא מקופל לאוטובוס עירוני.'
+          },
+          'surfboard': {
+            allowed: false,
+            title: 'אסור',
+            details: 'חל איסור מוחלט להעלות גלשן לאוטובוס עירוני.'
+          },
+          'pet': {
+            allowed: 'conditional',
+            title: 'מותר בתנאים מחמירים',
+            details: 'מותר להעלות רק בעל חיים שניתן להניחו על ברכי הנוסע, כשהוא קשור ברצועה ועם זמם לפיו. חריגים: כלבי נחייה המלווים עיוור או כלבי שירות מורשים.'
+          },
+          'luggage': {
+            allowed: 'conditional',
+            title: 'מותר בתנאים מסוימים',
+            details: 'נוסע רשאי לקחת עימו מטען יד ללא תשלום נוסף, ובלבד שלא יגרום הפרעה או נזק לנוסעים. אסור להעלות דברים שעלולים ללכלך או לפגוע באדם או בלבושו (כמו למשל כוס שתייה לא מכוסה או שתייה חמה), או מפיצים ריחות רעים.'
+          },
+          'stroller': {
+            allowed: 'conditional',
+            title: 'מותר כשמקופלת',
+            details: 'ניתן להעלות עגלת תינוק מקופלת בלבד. הנהג רשאי לסרב להעלות את העגלה מנימוקי צפיפות.'
+          }
         }
+      };
+
+      // References to DOM elements
+      const step1 = document.getElementById('step1');
+      const step2 = document.getElementById('step2');
+      const resultsContainer = document.getElementById('results');
+      const transportOptions = document.getElementById('transport-options');
+      const cargoOptions = document.getElementById('cargo-options');
+      const nextToStep2Button = document.getElementById('nextToStep2');
+      const backToStep1Button = document.getElementById('backToStep1');
+      const showResultsButton = document.getElementById('showResults');
+      const startOverButton =document.getElementById('startOver');
+      const resultsDetails = document.getElementById('results-details');
+
+      // Add event listeners to transport options
+      transportOptions.querySelectorAll('.selector-option').forEach(option => {
+        option.addEventListener('click', function() {
+          // Clear previous selection
+          transportOptions.querySelectorAll('.selector-option').forEach(opt => {
+            opt.classList.remove('selected');
+          });
+          
+          // Set new selection
+          this.classList.add('selected');
+          selectedTransport = this.getAttribute('data-transport');
+          
+          // Enable next button
+          nextToStep2Button.disabled = false;
+        });
+      });
+
+      // Add event listeners to cargo options
+      cargoOptions.querySelectorAll('.selector-option').forEach(option => {
+        option.addEventListener('click', function() {
+          // Clear previous selection
+          cargoOptions.querySelectorAll('.selector-option').forEach(opt => {
+            opt.classList.remove('selected');
+          });
+          
+          // Set new selection
+          this.classList.add('selected');
+          selectedCargo = this.getAttribute('data-cargo');
+          
+          // Enable show results button
+          showResultsButton.disabled = false;
+        });
+      });
+
+      // Navigation event listeners
+      nextToStep2Button.addEventListener('click', () => {
+        step1.classList.remove('active');
+        step2.classList.add('active');
+      });
+
+      backToStep1Button.addEventListener('click', () => {
+        step2.classList.remove('active');
+        step1.classList.add('active');
+      });
+
+      showResultsButton.addEventListener('click', () => {
+        step2.classList.remove('active');
+        resultsContainer.style.display = 'block';
+        updateResults();
+      });
+
+      startOverButton.addEventListener('click', () => {
+        // Reset selections
+        selectedTransport = null;
+        selectedCargo = null;
         
-        // אם לא הצלחנו לזהות הפניה באמצעות אף שירות, סיים את הלולאה
-        if (!redirectDetected) {
-            break;
-        }
-    }
-    
-    return chain.length > 1 ? chain : null;
-}
-
-// הרחבת רשימת קודי הסטטוס
-function getStatusTextFromCode(code) {
-    const statusTexts = {
-        100: 'Continue',
-        101: 'Switching Protocols',
-        102: 'Processing',
-        103: 'Early Hints',
-        200: 'OK',
-        201: 'Created',
-        202: 'Accepted',
-        203: 'Non-Authoritative Information',
-        204: 'No Content',
-        205: 'Reset Content',
-        206: 'Partial Content',
-        207: 'Multi-Status',
-        208: 'Already Reported',
-        226: 'IM Used',
-        300: 'Multiple Choices',
-        301: 'Moved Permanently',
-        302: 'Found',
-        303: 'See Other',
-        304: 'Not Modified',
-        305: 'Use Proxy',
-        306: 'Switch Proxy',
-        307: 'Temporary Redirect',
-        308: 'Permanent Redirect',
-        400: 'Bad Request',
-        401: 'Unauthorized',
-        402: 'Payment Required',
-        403: 'Forbidden',
-        404: 'Not Found',
-        405: 'Method Not Allowed',
-        406: 'Not Acceptable',
-        407: 'Proxy Authentication Required',
-        408: 'Request Timeout',
-        409: 'Conflict',
-        410: 'Gone',
-        411: 'Length Required',
-        412: 'Precondition Failed',
-        413: 'Payload Too Large',
-        414: 'URI Too Long',
-        415: 'Unsupported Media Type',
-        416: 'Range Not Satisfiable',
-        417: 'Expectation Failed',
-        418: 'Im a teapot',
-        421: 'Misdirected Request',
-        422: 'Unprocessable Entity',
-        423: 'Locked',
-        424: 'Failed Dependency',
-        425: 'Too Early',
-        426: 'Upgrade Required',
-        428: 'Precondition Required',
-        429: 'Too Many Requests',
-        431: 'Request Header Fields Too Large',
-        451: 'Unavailable For Legal Reasons',
-        500: 'Internal Server Error',
-        501: 'Not Implemented',
-        502: 'Bad Gateway',
-        503: 'Service Unavailable',
-        504: 'Gateway Timeout',
-        505: 'HTTP Version Not Supported',
-        506: 'Variant Also Negotiates',
-        507: 'Insufficient Storage',
-        508: 'Loop Detected',
-        510: 'Not Extended',
-        511: 'Network Authentication Required',
-        0: 'Connection Error'
-    };
-    
-    return statusTexts[code] || 'Unknown Status';
-}
-
-// פונקציה לשיפור תצוגת שגיאות
-function showError(message) {
-    loader.style.display = 'none';
-    result.style.display = 'block';
-    redirectInfo.style.display = 'none';
-    result.className = 'result error';
-    statusText.textContent = message;
-    statusCode.textContent = '';
-    urlText.textContent = urlInput.value;
-    responseTime.textContent = '-';
-    contentType.textContent = '-';
-    server.textContent = '-';
-    date.textContent = formatDate(new Date());
-}
-
-// שיפור פונקציית התצוגה
-function displayResult(statusCodeValue, statusTextValue, url, respTime, contType, serv, dt, redirectChain = null) {
-    loader.style.display = 'none';
-    result.style.display = 'block';
-    redirectInfo.style.display = 'none';
-    
-    result.className = 'result';
-    if (statusCodeValue >= 200 && statusCodeValue < 300) {
-        result.classList.add('success');
-    } else if (statusCodeValue >= 300 && statusCodeValue < 400) {
-        result.classList.add('info');
-    } else if (statusCodeValue >= 400 && statusCodeValue < 500) {
-        result.classList.add('warning');
-    } else if (statusCodeValue >= 500) {
-        result.classList.add('error');
-    } else {
-        result.classList.add('error'); // לקודי שגיאה לא סטנדרטיים
-    }
-    
-    statusCode.textContent = statusCodeValue;
-    statusText.textContent = statusTextValue;
-    urlText.textContent = url;
-    responseTime.textContent = respTime;
-    contentType.textContent = contType;
-    server.textContent = serv;
-    date.textContent = dt;
-    
-    if (redirectChain && redirectChain.length > 1) {
-        redirectInfo.style.display = 'block';
-        redirectChain.innerHTML = '';
+        // Clear selected classes
+        transportOptions.querySelectorAll('.selector-option').forEach(opt => {
+          opt.classList.remove('selected');
+        });
+        cargoOptions.querySelectorAll('.selector-option').forEach(opt => {
+          opt.classList.remove('selected');
+        });
         
-        redirectChain.forEach((redirect, index) => {
-            const redirectItem = document.createElement('div');
-            const statusClass = getStatusClass(redirect.status);
+        // Disable buttons
+        nextToStep2Button.disabled = true;
+        showResultsButton.disabled = true;
+        
+        // Hide results and show step 1
+        resultsContainer.style.display = 'none';
+        step1.classList.add('active');
+      });
+
+      // Function to update results
+      function updateResults() {
+        if (selectedTransport && selectedCargo) {
+          const rule = transportRules[selectedTransport][selectedCargo];
+          
+          if (rule) {
+            let resultClass = '';
+            let resultIcon = '';
             
-            redirectItem.innerHTML = `
-                ${index > 0 ? '<span class="redirect-arrow">→</span>' : ''}
-                <span dir="ltr">${redirect.url}</span>
-                <span class="status-badge ${statusClass}">${redirect.status}</span>
+            if (rule.allowed === true) {
+              resultClass = 'result-allowed';
+              resultIcon = '✅';
+            } else if (rule.allowed === 'conditional') {
+              resultClass = 'result-conditional';
+              resultIcon = '⚠️';
+            } else if (rule.allowed === false) {
+              resultClass = 'result-denied';
+              resultIcon = '❌';
+            }
+            
+            resultsDetails.innerHTML = `
+              <div class="result-item ${resultClass}">
+                <span class="result-icon">${resultIcon}</span>
+                <div class="result-content">
+                  <div class="result-title">${rule.title}</div>
+                  <div class="result-details">${rule.details}</div>
+                </div>
+              </div>
             `;
-            
-            redirectChain.appendChild(redirectItem);
-        });
-    }
-}
-        });
-    </script>
-<script src="footer.js"></script>
+          } else {
+            resultsDetails.innerHTML = `
+              <div class="result-item result-denied">
+                <span class="result-icon">❓</span>
+                <div class="result-content">
+                  <div class="result-title">אין מידע זמין</div>
+                  <div class="result-details">אין לנו מידע לגבי שילוב זה כרגע. אנא פנה לחברת התחבורה הציבורית לקבלת מידע מדויק.</div>
+                </div>
+              </div>
+            `;
+          }
+        }
+      }
+    });
+  </script>
 </body>
 </html>
