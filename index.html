@@ -1,21 +1,994 @@
 <!DOCTYPE html>
-<html dir="rtl" lang="he">
+<html lang="he" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="robots" content="noindex,nofollow">
-    <title>זהו עמוד ניסיונות</title>
-    <meta name="description" content="לרוב גם ככה לא יהיה פה שום דבר">
-    <script src="https://website-widgets.pages.dev/dist/sienna.min.js" defer></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>מותר לעלות עם זה לתחבורה הציבורית? | Tools by Rotem</title>
+  <meta name="description" content="רוצים לנסוע לים ולא בטוחים אם מותר להעלות גלשן לאוטובוס? נוסעים באופניים לרכבת אך לא בטוחים אם מותר לעלות איתן? בדקו את תנאי העלאת המטען לתחבורה הציבורית >>>">
+  <link rel="canonical" href="https://tools-by-rotem.github.io/webtools/public-transport-luggage" />
+  <link rel="icon" type="image/x-icon" href="/webtools/site-favicon.ico">
+  <style>
+    :root {
+  --primary-color: #1e88e5;
+  --secondary-color: #f5f5f5;
+  --border-color: #ddd;
+  --text-color: #333;
+  --text-light: #666;
+  --success-color: #4caf50;
+  --warning-color: #ff9800;
+  --danger-color: #f44336;
+  --box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', 'Arial', sans-serif;
+}
+
+body {
+  background-color: #f9f9f9;
+  color: var(--text-color);
+  line-height: 1.6;
+}
+
+.container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+h1 {
+  font-size: 2.2rem;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.subtitle {
+  font-size: 1.1rem;
+  font-weight: normal;
+  text-align: center;
+  padding-bottom: 20px;
+}
+
+.step-container {
+  display: none;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: var(--box-shadow);
+  padding: 20px;
+  margin-bottom: 30px;
+  animation: fadeIn 0.3s ease-in;
+}
+
+.step-container.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.step-title {
+  font-size: 17px;
+  margin-bottom: 15px;
+  color: var(--primary-color);
+}
+
+.step-number {
+  display: inline-block;
+  width: 30px;
+  height: 30px;
+  background-color: var(--primary-color);
+  color: white;
+  border-radius: 50%;
+  text-align: center;
+  line-height: 30px;
+  margin-left: 10px;
+}
+
+.selector-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.selector-option {
+  flex: 1;
+  min-width: 200px;
+  padding: 15px;
+  background-color: var(--secondary-color);
+  border: 1px solid var(--border-color);
+  border-radius: 5px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.selector-option:hover {
+  background-color: #e0e0e0;
+}
+
+.selector-option.selected {
+  background-color: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}
+
+.navigation-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+/* מרכוז כפתורים בשלב 1 ו-3 */
+#step1 .navigation-buttons,
+#results .navigation-buttons {
+  justify-content: center;
+}
+
+/* שמירת כפתורים בצדדים בשלב 2 */
+#step2 .navigation-buttons {
+  justify-content: space-between;
+}
+
+.nav-button {
+  padding: 10px 20px;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.nav-button:disabled {
+  background-color: var(--border-color);
+  cursor: not-allowed;
+}
+
+.nav-button:hover:not(:disabled) {
+  background-color: #1565c0;
+}
+
+.results-container {
+  display: none;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: var(--box-shadow);
+  padding: 20px;
+  margin-bottom: 30px;
+  animation: fadeIn 0.3s ease-in;
+}
+
+.results-title {
+  font-size: 1.3rem;
+  margin-bottom: 15px;
+  color: var(--primary-color);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.results-icon {
+  font-size: 1.5rem;
+}
+
+.results-info {
+  margin-bottom: 15px;
+  padding: 15px;
+  border-radius: 5px;
+  background-color: var(--secondary-color);
+}
+
+.result-item {
+  padding: 15px;
+  margin-bottom: 10px;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.result-allowed {
+  background-color: rgba(76, 175, 80, 0.1);
+  border-left: 4px solid var(--success-color);
+}
+
+.result-conditional {
+  background-color: rgba(255, 152, 0, 0.1);
+  border-left: 4px solid var(--warning-color);
+}
+
+.result-denied {
+  background-color: rgba(244, 67, 54, 0.1);
+  border-left: 4px solid var(--danger-color);
+}
+
+.result-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.result-content {
+  flex-grow: 1;
+}
+
+.result-title {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.result-details {
+  font-size: 0.95rem;
+  color: var(--text-light);
+}
+
+.guidelines {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: var(--box-shadow);
+  padding: 20px;
+  margin-top: 40px;
+}
+
+.guidelines-section {
+  margin-bottom: 30px;
+}
+
+.guidelines-section:last-child {
+  margin-bottom: 0;
+}
+
+.guidelines-title {
+  font-size: 1.5rem;
+  color: var(--primary-color);
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.section-title {
+  font-size: 1.3rem;
+  color: var(--primary-color);
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--secondary-color);
+}
+
+.guidelines-list {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+.guidelines-list li {
+  margin-bottom: 8px;
+  padding-right: 20px;
+  position: relative;
+}
+
+.guidelines-list li::before {
+  content: "•";
+  color: var(--primary-color);
+  font-weight: bold;
+  position: absolute;
+  right: 0;
+}
+
+.main-header {
+  background-color: #2d3436;
+  color: white;
+  padding: 1rem 0;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.header-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.logo img {
+  height: 60px;
+  width: auto;
+}
+
+.main-footer {
+  background-color: #2d3436;
+  color: white;
+  padding: 3rem 0 1.5rem;
+  margin-top: 4rem;
+}
+
+.footer-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2rem;
+  text-align: center;
+}
+
+.footer-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: center;
+}
+
+.footer-section p {
+  color: white;
+  margin-bottom: 1rem;
+  font-weight: bold;
+  width: 100%;
+  text-align: center;
+}
+
+.footer-section ul {
+  list-style: none;
+  width: 100%;
+  text-align: center;
+}
+
+.footer-section ul li {
+  margin-bottom: 0.5rem;
+}
+
+.footer-section a {
+  color: #ddd;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.footer-section a:hover {
+  color: #0984e3;
+}
+
+.social-icons {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  width: 100%;
+}
+
+.social-icons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  width: 100%;
+}
+
+.social-icons img {
+  width: 24px;
+  height: 24px;
+  transition: opacity 0.3s ease;
+}
+
+.social-icons a:hover img {
+  opacity: 0.8;
+}
+
+.footer-bottom {
+  text-align: center;
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid #444;
+}
+
+@media (max-width: 768px) {
+  .selector-option {
+    min-width: 150px;
+  }
+  
+  .step-number {
+    width: 24px;     /* מקטין את מעגל המספר */
+    height: 24px;
+    line-height: 24px;
+    font-size: 0.9rem;
+  }
+  
+  .footer-container {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+
+  .footer-section {
+    align-items: center;
+  }
+  
+  h1 {
+    font-size: 1.8rem; /* מקטין מעט את גודל הכותרת במובייל */
+  }
+  
+  h1 .mobile-break {
+    display: block; /* גורם לאלמנט להופיע בשורה חדשה */
+    margin-top: 5px; /* מרווח קטן בין השורות */
+  }
+}
+
+@media (min-width: 769px) {
+  h1 .mobile-break {
+    display: inline; /* במסכים גדולים, האלמנט יופיע באותה שורה */
+  }
+}
+
+@media (max-width: 576px) {
+  .container {
+    padding: 10px;
+  }
+  
+  .selector-options {
+    flex-direction: column;
+  }
+  
+  .selector-option {
+    width: 100%;
+  }
+  
+  .footer-container {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+
+  .footer-section {
+    align-items: center;
+  }
+}
+  </style>
+  <script src="https://website-widgets.pages.dev/dist/sienna.min.js" defer></script>
 </head>
 <body>
-    <main class="main-content">
-        <div class="container">
-            <header class="page-header">
-                <h1>זהו עמוד ניסיונות</h1>
-                <p>לרוב לא תמצאו פה כלום, אם יהיה פה משהו זה יהיה לזמן ממש קצר ובסוף יעבור לאתר הראשי.</p>
-            </header>
+  <header class="main-header">
+        <div class="header-container">
+            <a href="https://tools-by-rotem.github.io/webtools/" class="logo">
+                <img src="https://tools-by-rotem.github.io/webtools/site-logo.png" alt="רותם קנון לוגו">
+            </a>
         </div>
-    </main> 
+    </header>
+    
+  <div class="container">
+    <h1>מותר לעלות עם זה<span class="mobile-break"> לתחבורה הציבורית?</span></h1>
+    <p class="subtitle">בחרו את אמצעי התחבורה ואת סוג המטען כדי לבדוק האם ניתן להעלות אותו</p>
+
+    <div id="step1" class="step-container active">
+      <h2 class="step-title"><span class="step-number">1</span>בחרו את אמצעי התחבורה הציבורית:</h2>
+      <div class="selector-options" id="transport-options">
+        <div class="selector-option" data-transport="train">רכבת ישראל</div>
+        <div class="selector-option" data-transport="light-rail">רכבת קלה</div>
+        <div class="selector-option" data-transport="inter-city-bus">אוטובוס בינעירוני</div>
+        <div class="selector-option" data-transport="city-bus">אוטובוס עירוני</div>
+      </div>
+      <div class="navigation-buttons">
+        <button class="nav-button" id="nextToStep2" disabled>הבא</button>
+      </div>
+    </div>
+
+    <div id="step2" class="step-container">
+      <h2 class="step-title"><span class="step-number">2</span>בחרו את סוג המטען:</h2>
+      <div class="selector-options" id="cargo-options">
+        <div class="selector-option" data-cargo="folding-bike">אופניים מתקפלים</div>
+        <div class="selector-option" data-cargo="regular-bike">אופניים רגילים</div>
+        <div class="selector-option" data-cargo="folding-scooter">קורקינט מקופל</div>
+        <div class="selector-option" data-cargo="regular-scooter">קורקינט לא מקופל</div>
+        <div class="selector-option" data-cargo="surfboard">גלשן</div>
+        <div class="selector-option" data-cargo="pet">חיית מחמד</div>
+        <div class="selector-option" data-cargo="luggage">מזוודה/תיק</div>
+        <div class="selector-option" data-cargo="stroller">עגלת תינוק</div>
+      </div>
+      <div class="navigation-buttons">
+        <button class="nav-button" id="backToStep1">חזרה</button>
+        <button class="nav-button" id="showResults" disabled>הצגת הנחיות</button>
+      </div>
+    </div>
+
+    <div id="results" class="results-container">
+      <div class="results-title">
+        <span class="results-icon" id="results-icon"></span>
+        <h2 id="results-title">הנחיות</h2>
+      </div>
+      <div class="results-info" id="results-info"></div>
+      <div id="results-details"></div>
+      <div class="navigation-buttons">
+        <button class="nav-button" id="startOver">התחלה מחדש</button>
+      </div>
+    </div>
+
+    <div class="guidelines">
+      <h2 class="guidelines-title">הנחיות כלליות להעלאת מטען לתחבורה הציבורית</h2>
+      
+      <div class="guidelines-section">
+        <h3 class="section-title">אופניים מתקפלים</h3>
+        <ul class="guidelines-list">
+          <li><strong>רכבת ישראל:</strong> מותר להעלות אופניים מתקפלים לרכבת ישראל בכל שעות הפעילות. יש להעלותם רק לקרון הדרומי הייעודי.</li>
+  <li><strong>רכבת קלה:</strong> מותר להעלות אופניים מתקפלים לרכבת הקלה בכל שעות הפעילות, עם או בלי תיק אחסון. הנוסע חייב להשאיר את האופניים צמודים אליו במשך כל הנסיעה.</li>
+  <li><strong>אוטובוס בינעירוני:</strong> מותר להעלות אופניים מתקפלים לאוטובוס בינעירוני רק בתא המטען, ולא בתוך האוטובוס. אין תשלום נוסף.</li>
+  <li><strong>אוטובוס עירוני:</strong> מותר להעלות אופניים מתקפלים לאוטובוס עירוני רק אם הם מקופלים לחלוטין ומוכנסים לתוך תיק. הנהג רשאי לסרב אם הם מלוכלכים.</li>
+        </ul>
+      </div>
+
+      <div class="guidelines-section">
+        <h3 class="section-title">אופניים רגילים</h3>
+        <ul class="guidelines-list">
+          <li><strong>רכבת ישראל:</strong> מותר להעלות אופניים רגילים לרכבת ישראל רק בשעות השפל: ימים א'-ה' בין 09:00–15:00 ובין 19:00–06:00 למחרת, ובימי ו' וערבי חג בכל שעות הפעילות. לא ניתן להעלות במוצ"ש ובמוצאי חג. יש להעלותם לקרון הדרומי הייעודי.</li>
+  <li><strong>רכבת קלה:</strong> אסור להעלות אופניים רגילים לרכבת הקלה בשום מקרה.</li>
+  <li><strong>אוטובוס בינעירוני:</strong> מותר להעלות אופניים רגילים לאוטובוס בינעירוני בתא המטען בלבד, וללא תשלום. הנהג רשאי לסרב לאופניים מלוכלכים או גדולים במיוחד.</li>
+  <li><strong>אוטובוס עירוני:</strong> אסור להעלות אופניים רגילים (לא מתקפלים) לאוטובוס עירוני.</li>
+        </ul>
+      </div>
+
+      <div class="guidelines-section">
+        <h3 class="section-title">קורקינט מקופל</h3>
+        <ul class="guidelines-list">
+          <li><strong>רכבת ישראל:</strong> מותר להעלות קורקינט מקופל לרכבת ישראל בכל שעות הפעילות. יש להעלותו רק לקרון הדרומי הייעודי.</li>
+  <li><strong>רכבת קלה:</strong> מותר להעלות קורקינט מקופל לרכבת הקלה. הנוסע חייב להשאיר את הקורקינט צמוד אליו במשך כל הנסיעה.</li>
+  <li><strong>אוטובוס בינעירוני:</strong> מותר להעלות קורקינט מקופל לאוטובוס בינעירוני רק בתא המטען, ללא תשלום נוסף.</li>
+  <li><strong>אוטובוס עירוני:</strong> מותר להעלות קורקינט מקופל לאוטובוס עירוני בתנאי שהוא מקופל לחלוטין ואינו מלוכלך.</li>
+        </ul>
+      </div>
+
+      <div class="guidelines-section">
+        <h3 class="section-title">קורקינט רגיל</h3>
+        <ul class="guidelines-list">
+          <li><strong>רכבת ישראל:</strong> מותר להעלות קורקינט רגיל לרכבת ישראל רק בשעות השפל, כמו אופניים רגילים. יש להעלותו רק לקרון הדרומי הייעודי.</li>
+  <li><strong>רכבת קלה:</strong> אסור להעלות קורקינט רגיל (לא מקופל) לרכבת הקלה.</li>
+  <li><strong>אוטובוס בינעירוני:</strong> מותר להעלות קורקינט רגיל לאוטובוס בינעירוני רק בתא המטען, ללא תשלום נוסף.</li>
+  <li><strong>אוטובוס עירוני:</strong> אסור להעלות קורקינט רגיל לאוטובוס עירוני.</li>
+        </ul>
+      </div>
+
+<div class="guidelines-section">
+        <h3 class="section-title">גלשן</h3>
+        <ul class="guidelines-list">
+          <li><strong>רכבת ישראל:</strong> אסור להעלות גלשן לרכבת ישראל.</li>
+  <li><strong>רכבת קלה:</strong> אסור להעלות גלשן לרכבת הקלה.</li>
+  <li><strong>אוטובוס בינעירוני:</strong> מותר להעלות גלשן לאוטובוס בינעירוני בתא המטען בלבד, וללא תשלום, כל עוד יש מקום.</li>
+  <li><strong>אוטובוס עירוני:</strong> אסור להעלות גלשן לאוטובוס עירוני.</li>
+        </ul>
+      </div>
+
+<div class="guidelines-section">
+        <h3 class="section-title">חיות מחמד</h3>
+        <ul class="guidelines-list">
+          <li><strong>רכבת ישראל:</strong> מותר להעלות חיות מחמד קטנות לרכבת ישראל כשהן קשורות ועם מחסום פה. חיה גדולה יותר מחויבת במחסום פה ורצועה.</li>
+  <li><strong>רכבת קלה:</strong> מותר להעלות חיות מחמד קטנות לרכבת הקלה כשהן קשורות ועם מחסום פה.</li>
+  <li><strong>אוטובוס בינעירוני:</strong> מותר להעלות חיות מחמד קטנות לאוטובוס בינעירוני כשהן קשורות ומצוידות במחסום פה, ובלבד שהן מוחזקות על הברכיים או בידיים.</li>
+  <li><strong>אוטובוס עירוני:</strong> מותר להעלות לאוטובוס עירוני רק בעל חיים קטן שניתן להניחו על הברכיים, קשור ועם זמם לפה. חריגים: כלבי נחייה או שירות.</li>
+        </ul>
+      </div>
+
+<div class="guidelines-section">
+        <h3 class="section-title">מזוודות ותיקים</h3>
+        <ul class="guidelines-list">
+          <li><strong>רכבת ישראל:</strong> מותר להעלות מזוודות ותיקים לרכבת ישראל ללא הגבלה, כל עוד אינם מפריעים לנוסעים.</li>
+  <li><strong>רכבת קלה:</strong> מותר להעלות מזוודות ותיקים לרכבת הקלה, כל עוד אינם מפריעים לשאר הנוסעים.</li>
+  <li><strong>אוטובוס בינעירוני:</strong> מותר להעלות תיקים קטנים לאוטובוס בינעירוני. תיקים גדולים יש להכניס לתא המטען.</li>
+  <li><strong>אוטובוס עירוני:</strong> מותר להעלות מטען יד לאוטובוס עירוני אם אינו מפריע או מסוכן לנוסעים. חל איסור על פריטים מזהמים, חמים או מריחים.</li>
+        </ul>
+      </div>
+
+<div class="guidelines-section">
+        <h3 class="section-title">עגלת תינוק</h3>
+        <ul class="guidelines-list">
+          <li><strong>רכבת ישראל:</strong> מותר להעלות עגלת תינוק לרכבת ישראל. ייתכן שתתבקשו לקפל את העגלה בשעות העומס.</li>
+  <li><strong>רכבת קלה:</strong> מותר להעלות עגלת תינוק לרכבת הקלה. ייתכן שתתבקשו לקפל את העגלה בשעות העומס.</li>
+  <li><strong>אוטובוס בינעירוני:</strong> מותר להעלות עגלת תינוק מקופלת בלבד לאוטובוס בינעירוני. הנהג רשאי לסרב מטעמי צפיפות.</li>
+  <li><strong>אוטובוס עירוני:</strong> מותר להעלות עגלת תינוק מקופלת בלבד לאוטובוס עירוני. הנהג רשאי לסרב להעלותה במידה ויש עומס.</li>
+        </ul>
+      </div>
+
+      <div class="guidelines-section">
+        <h3 class="section-title">הנחיות כלליות למטען נוסף</h3>
+        <ul class="guidelines-list">
+          <li>אסור להעלות דברים שעלולים ללכלך, לפגוע באדם או מפיצים ריחות רעים</li>
+          <li>אסור להעלות חומרי נפץ ונשק טעון</li>
+          <li>מותר להעלות חיות מחמד קטנות כשהן קשורות ועם מחסום פה</li>
+          <li>נוסע רשאי לקחת מטען יד ללא תשלום נוסף כל עוד אינו מפריע לנוסעים אחרים</li>
+        </ul>
+        <p>המידע מבוסס על הנחיות רשמיות של רכבת ישראל, חברות האוטובוסים ונהלי משרד התחבורה. ההחלטה הסופית נתונה לשיקול דעת צוות התחבורה הציבורית. מומלץ לבדוק את ההנחיות באתרים הרשמיים של חברות התחבורה הציבורים.</p>
+      </div>
+    </div>
+  </div>
+  
+  <footer class="main-footer">
+        <div class="footer-container">
+            <div class="footer-section">
+                <p>רשתות חברתיות</p>
+                <div class="social-icons">
+                    <a href="https://www.linkedin.com/in/rotem-kanon" target="_blank">
+                        <img src="https://cdn-icons-png.flaticon.com/512/145/145807.png" alt="LinkedIn">
+                    </a>
+                    <a href="https://github.com/tools-by-rotem" target="_blank">
+                        <img src="https://images.icon-icons.com/3685/PNG/512/github_logo_icon_229278.png" alt="GitHub">
+                    </a>
+                    <a href="https://www.tiktok.com/@rotemkanon" target="_blank">
+                        <img src="https://cdn-icons-png.flaticon.com/512/4782/4782345.png" alt="Tiktok">
+                    </a>
+                </div>
+            </div>
+            <div class="footer-section">
+                <p>ניווט באתר</p>
+                <ul>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/">ספריית הכלים</a></li>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/accessibility-statement">הצהרת נגישות</a></li>
+		    <li><a href="https://tools-by-rotem.github.io/webtools/sitemap">מפת אתר</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <p>כמויות חיפושים</p>
+                <ul>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/google-search-volume">כמות חיפושים בגוגל</a></li>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/spotify-search-volume">כמות חיפושים בספוטיפיי</a></li>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/soundcloud-search-volume">כמות חיפושים בסאונדקלאוד </a></li>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/competitors-traffic">חישוב תנועה לאתרי מתחרים </a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <p>תצוגה מקדימה</p>
+                <ul>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/open-graph-checker">בדיקת Open Graph</a></li>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/google-serp-preview">תצוגה מקדימה לנראות בגוגל</a></li>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/social-link-preview">תצוגה מקדימה לרשתות חברתיות</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <p>אופטימיזציה</p>
+                <ul>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/page-speed-test">בדיקת מהירות טעינה</a></li>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/mobile-simulator">בדיקת תאימות למכשירים ניידים</a></li>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/image-minify-converter">המרת פורמט וכיווץ משקל תמונה</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <p>יצירה ועיצוב</p>
+                <ul>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/background-remover">הסרת רקע מתמונה</a></li>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/draw">ציור אינטראקטיבי</a></li>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/image-color-identifier">זיהוי צבעי תמונה</a></li>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/infographics">יצירת אינפוגרפיקות</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <p>נגישות</p>
+                <ul>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/accessibility-toolbar">סרגל נגישות</a></li>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/accessibility-checker">בדיקת נגישות לאתר אינטרנט</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <p>שונות</p>
+                <ul>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/navigation-links-generator">מחולל קישורי ניווט</a></li>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/reverse-typing-fix">תיקון הקלדה הפוכה</a></li>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/strong-password-generator">מחולל סיסמאות חזקות</a></li>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/time-to-go-home">הגיע הזמן ללכת הביתה</a></li>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/resume-scanner">התאמת קורות חיים לסורקים אוטומטיים</a></li>
+		    <li><a href="https://tools-by-rotem.github.io/webtools/time-zone-converter">המרת זמן בינלאומי</a></li>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/fahrenheit-to-celsius">המרת פרנהייט לצלזיוס</a></li>
+		    <li><a href="https://tools-by-rotem.github.io/webtools/screen-size-checker">בדיקת גודל מסך</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2025 כל הזכויות שמורות לרותם קנון</p>
+        </div>
+    </footer>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Variables to store selections
+      let selectedTransport = null;
+      let selectedCargo = null;
+
+      // Data for the transport rules
+      const transportRules = {
+        train: {
+          'folding-bike': {
+            allowed: true,
+            title: 'מותר בכל שעות הפעילות',
+            details: 'אופניים מתקפלים מותרים ברכבת ישראל בכל שעות הפעילות. יש להעלותם רק לקרון הדרומי הייעודי.'
+          },
+          'regular-bike': {
+            allowed: 'conditional',
+            title: 'מותר בשעות מסוימות בלבד',
+            details: 'אופניים רגילים מותרים בימים א\'-ה\' בין 09:00-15:00 ובין 19:00-06:00 למחרת, ובימי ו\' וערבי חג בכל שעות הפעילות. במוצ"ש ומוצאי חג לא ניתן להעלות אופניים רגילים. יש להעלותם רק לקרון הדרומי הייעודי.'
+          },
+          'folding-scooter': {
+            allowed: true,
+            title: 'מותר בכל שעות הפעילות',
+            details: 'קורקינט מקופל מותר ברכבת בכל שעות הפעילות. יש להעלותו רק לקרון הדרומי הייעודי.'
+          },
+          'regular-scooter': {
+            allowed: 'conditional',
+            title: 'מותר בשעות מסוימות בלבד',
+            details: 'קורקינט לא מקופל מותר בשעות השפל בלבד, כמו אופניים רגילים. יש להעלותו רק לקרון הדרומי הייעודי.'
+          },
+          'surfboard': {
+            allowed: false,
+            title: 'אסור',
+            details: 'לא ניתן להעלות גלשן לרכבת ישראל.'
+          },
+          'pet': {
+            allowed: 'conditional',
+            title: 'מותר בתנאים מסוימים',
+            details: 'ניתן להעלות חיות מחמד קטנות כשהן קשורות ועם מחסום פה.'
+          },
+          'luggage': {
+            allowed: true,
+            title: 'מותר',
+            details: 'ניתן להעלות מזוודות ותיקים לרכבת ישראל ללא הגבלה, כל עוד אינם מפריעים לשאר הנוסעים.'
+          },
+          'stroller': {
+            allowed: true,
+            title: 'מותר',
+            details: 'ניתן להעלות עגלת תינוק לרכבת ישראל. ייתכן ותתבקשו לקפל את העגלה בשעות העומס.'
+          }
+        },
+        'light-rail': {
+          'folding-bike': {
+            allowed: true,
+            title: 'מותר בכל שעות הפעילות',
+            details: 'אופניים מתקפלים מותרים ברכבת הקלה בכל שעות הפעילות, עם או בלי תיק אחסון. הנוסע חייב להשאיר את האופניים צמודים אליו במשך כל הנסיעה.'
+          },
+          'regular-bike': {
+            allowed: false,
+            title: 'אסור',
+            details: 'אסור להעלות אופניים רגילים (לא מתקפלים) לרכבת הקלה בשום מקרה.'
+          },
+          'folding-scooter': {
+            allowed: true,
+            title: 'מותר',
+            details: 'קורקינט מקופל מותר ברכבת הקלה. הנוסע חייב להשאיר את הקורקינט צמוד אליו במשך כל הנסיעה.'
+          },
+          'regular-scooter': {
+            allowed: false,
+            title: 'אסור',
+            details: 'אסור להעלות קורקינט לא מקופל לרכבת הקלה.'
+          },
+          'surfboard': {
+            allowed: false,
+            title: 'אסור',
+            details: 'לא ניתן להעלות גלשן לרכבת הקלה.'
+          },
+          'pet': {
+            allowed: 'conditional',
+            title: 'מותר בתנאים מסוימים',
+            details: 'ניתן להעלות חיות מחמד קטנות כשהן קשורות ועם מחסום פה.'
+          },
+          'luggage': {
+            allowed: true,
+            title: 'מותר',
+            details: 'ניתן להעלות מזוודות ותיקים לרכבת הקלה, כל עוד אינם מפריעים לשאר הנוסעים.'
+          },
+          'stroller': {
+            allowed: true,
+            title: 'מותר',
+            details: 'ניתן להעלות עגלת תינוק לרכבת הקלה. ייתכן ותתבקשו לקפל את העגלה בשעות העומס.'
+          }
+        },
+        'inter-city-bus': {
+          'folding-bike': {
+            allowed: 'conditional',
+            title: 'מותר בתא המטען בלבד',
+            details: 'אופניים מתקפלים אסורים בתוך האוטובוס, אך ניתן להכניסם לתאי המטען ללא תשלום נוסף.'
+          },
+          'regular-bike': {
+            allowed: 'conditional',
+            title: 'מותר בתא המטען בלבד',
+            details: 'אופניים רגילים אסורים בתוך האוטובוס, אך ניתן להכניסם לתאי המטען ללא תשלום נוסף. הנהג רשאי לסרב להכניס אופניים מלוכלכים או גדולים במיוחד לתא המטען.'
+          },
+          'folding-scooter': {
+            allowed: 'conditional',
+            title: 'מותר בתא המטען בלבד',
+            details: 'קורקינט מקופל אסור בתוך האוטובוס, אך ניתן להכניסו לתאי המטען ללא תשלום נוסף.'
+          },
+          'regular-scooter': {
+            allowed: 'conditional',
+            title: 'מותר בתא המטען בלבד',
+            details: 'קורקינט לא מקופל אסור בתוך האוטובוס, אך ניתן להכניסו לתאי המטען ללא תשלום נוסף.'
+          },
+          'surfboard': {
+            allowed: 'conditional',
+            title: 'מותר בתא המטען בלבד',
+            details: 'גלשן אסור בתוך האוטובוס, אך ניתן להכניסו לתאי המטען ללא תשלום נוסף, בתנאי שיש מקום.'
+          },
+          'pet': {
+            allowed: 'conditional',
+            title: 'מותר בתנאים מסוימים',
+            details: 'ניתן להעלות חיות מחמד קטנות כשהן קשורות ברצועה ומצוידות במחסום פה, מונחות על הברכיים או מוחזקות על הידיים.'
+          },
+          'luggage': {
+            allowed: true,
+            title: 'מותר',
+            details: 'ניתן להעלות מזוודות ותיקים קטנים לאוטובוס. תיקים גדולים ומזוודות יש להכניס לתאי המטען.'
+          },
+          'stroller': {
+            allowed: 'conditional',
+            title: 'מותר כשמקופלת',
+            details: 'ניתן להעלות עגלת תינוק מקופלת. הנהג רשאי לסרב להעלות את העגלה מנימוקי צפיפות.'
+          }
+        },
+        'city-bus': {
+          'folding-bike': {
+            allowed: 'conditional',
+            title: 'מותר בתנאים מסוימים',
+            details: 'אופניים מתקפלים מותרים רק אם הם מקופלים לחלוטין ומוכנסים לתוך תיק. הנהג רשאי לסרב להעלותם אם הם מלוכלכים או עלולים ללכלך את האוטובוס או את הנוסעים.'
+          },
+          'regular-bike': {
+            allowed: false,
+            title: 'אסור',
+            details: 'חל איסור מוחלט להכניס אופניים לא מתקפלים (רגילים) לאוטובוס עירוני.'
+          },
+          'folding-scooter': {
+            allowed: 'conditional',
+            title: 'מותר כשמקופל לחלוטין',
+            details: 'קורקינט מקופל מותר באוטובוס עירוני בתנאי שהוא מקופל לחלוטין ואינו מלוכלך.'
+          },
+          'regular-scooter': {
+            allowed: false,
+            title: 'אסור',
+            details: 'חל איסור מוחלט להעלות קורקינט לא מקופל לאוטובוס עירוני.'
+          },
+          'surfboard': {
+            allowed: false,
+            title: 'אסור',
+            details: 'חל איסור מוחלט להעלות גלשן לאוטובוס עירוני.'
+          },
+          'pet': {
+            allowed: 'conditional',
+            title: 'מותר בתנאים מחמירים',
+            details: 'מותר להעלות רק בעל חיים שניתן להניחו על ברכי הנוסע, כשהוא קשור ברצועה ועם זמם לפיו. חריגים: כלבי נחייה המלווים עיוור או כלבי שירות מורשים.'
+          },
+          'luggage': {
+            allowed: 'conditional',
+            title: 'מותר בתנאים מסוימים',
+            details: 'נוסע רשאי לקחת עימו מטען יד ללא תשלום נוסף, ובלבד שלא יגרום הפרעה או נזק לנוסעים. אסור להעלות דברים שעלולים ללכלך או לפגוע באדם או בלבושו (כמו למשל כוס שתייה לא מכוסה או שתייה חמה), או מפיצים ריחות רעים.'
+          },
+          'stroller': {
+            allowed: 'conditional',
+            title: 'מותר כשמקופלת',
+            details: 'ניתן להעלות עגלת תינוק מקופלת בלבד. הנהג רשאי לסרב להעלות את העגלה מנימוקי צפיפות.'
+          }
+        }
+      };
+
+      // References to DOM elements
+      const step1 = document.getElementById('step1');
+      const step2 = document.getElementById('step2');
+      const resultsContainer = document.getElementById('results');
+      const transportOptions = document.getElementById('transport-options');
+      const cargoOptions = document.getElementById('cargo-options');
+      const nextToStep2Button = document.getElementById('nextToStep2');
+      const backToStep1Button = document.getElementById('backToStep1');
+      const showResultsButton = document.getElementById('showResults');
+      const startOverButton =document.getElementById('startOver');
+      const resultsDetails = document.getElementById('results-details');
+
+      // Add event listeners to transport options
+      transportOptions.querySelectorAll('.selector-option').forEach(option => {
+        option.addEventListener('click', function() {
+          // Clear previous selection
+          transportOptions.querySelectorAll('.selector-option').forEach(opt => {
+            opt.classList.remove('selected');
+          });
+          
+          // Set new selection
+          this.classList.add('selected');
+          selectedTransport = this.getAttribute('data-transport');
+          
+          // Enable next button
+          nextToStep2Button.disabled = false;
+        });
+      });
+
+      // Add event listeners to cargo options
+      cargoOptions.querySelectorAll('.selector-option').forEach(option => {
+        option.addEventListener('click', function() {
+          // Clear previous selection
+          cargoOptions.querySelectorAll('.selector-option').forEach(opt => {
+            opt.classList.remove('selected');
+          });
+          
+          // Set new selection
+          this.classList.add('selected');
+          selectedCargo = this.getAttribute('data-cargo');
+          
+          // Enable show results button
+          showResultsButton.disabled = false;
+        });
+      });
+
+      // Navigation event listeners
+      nextToStep2Button.addEventListener('click', () => {
+        step1.classList.remove('active');
+        step2.classList.add('active');
+      });
+
+      backToStep1Button.addEventListener('click', () => {
+        step2.classList.remove('active');
+        step1.classList.add('active');
+      });
+
+      showResultsButton.addEventListener('click', () => {
+        step2.classList.remove('active');
+        resultsContainer.style.display = 'block';
+        updateResults();
+      });
+
+      startOverButton.addEventListener('click', () => {
+        // Reset selections
+        selectedTransport = null;
+        selectedCargo = null;
+        
+        // Clear selected classes
+        transportOptions.querySelectorAll('.selector-option').forEach(opt => {
+          opt.classList.remove('selected');
+        });
+        cargoOptions.querySelectorAll('.selector-option').forEach(opt => {
+          opt.classList.remove('selected');
+        });
+        
+        // Disable buttons
+        nextToStep2Button.disabled = true;
+        showResultsButton.disabled = true;
+        
+        // Hide results and show step 1
+        resultsContainer.style.display = 'none';
+        step1.classList.add('active');
+      });
+
+      // Function to update results
+      function updateResults() {
+        if (selectedTransport && selectedCargo) {
+          const rule = transportRules[selectedTransport][selectedCargo];
+          
+          if (rule) {
+            let resultClass = '';
+            let resultIcon = '';
+            
+            if (rule.allowed === true) {
+              resultClass = 'result-allowed';
+              resultIcon = '✅';
+            } else if (rule.allowed === 'conditional') {
+              resultClass = 'result-conditional';
+              resultIcon = '⚠️';
+            } else if (rule.allowed === false) {
+              resultClass = 'result-denied';
+              resultIcon = '❌';
+            }
+            
+            resultsDetails.innerHTML = `
+              <div class="result-item ${resultClass}">
+                <span class="result-icon">${resultIcon}</span>
+                <div class="result-content">
+                  <div class="result-title">${rule.title}</div>
+                  <div class="result-details">${rule.details}</div>
+                </div>
+              </div>
+            `;
+          } else {
+            resultsDetails.innerHTML = `
+              <div class="result-item result-denied">
+                <span class="result-icon">❓</span>
+                <div class="result-content">
+                  <div class="result-title">אין מידע זמין</div>
+                  <div class="result-details">אין לנו מידע לגבי שילוב זה כרגע. אנא פנה לחברת התחבורה הציבורית לקבלת מידע מדויק.</div>
+                </div>
+              </div>
+            `;
+          }
+        }
+      }
+    });
+  </script>
 </body>
 </html>
