@@ -80,6 +80,9 @@
 
           // החבאת האנימציה לאחר טעינה
           loader.classList.add("hidden");
+
+          // קפיצה אוטומטית לתחתית הכלי, לכפתור ההורדה
+          result.scrollIntoView({ behavior: 'smooth' });
         };
 
         img.onerror = () => {
