@@ -1,21 +1,86 @@
 <!DOCTYPE html>
-<html dir="rtl" lang="he">
+<html lang="he" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="robots" content="noindex,nofollow">
-    <title>זהו עמוד ניסיונות</title>
-    <meta name="description" content="לרוב גם ככה לא יהיה פה שום דבר">
-    <script src="https://website-widgets.pages.dev/dist/sienna.min.js" defer></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex,nofollow">
+  <title>מחולל תמונות AI</title>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <main class="main-content">
-        <div class="container">
-            <header class="page-header">
-                <h1>זהו עמוד ניסיונות</h1>
-                <p>לרוב לא תמצאו פה כלום, אם יהיה פה משהו זה יהיה לזמן ממש קצר ובסוף יעבור לאתר הראשי.</p>
-            </header>
-        </div>
-    </main> 
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+
+  <div class="bg-white shadow-2xl rounded-2xl p-6 w-full max-w-xl text-center">
+    <h1 class="text-2xl font-bold mb-4 text-gray-800">מחולל תמונות בעזרת בינה מלאכותית</h1>
+    <p class="text-gray-600 mb-4">כתוב תיאור של תמונה ותקבל תוצאה מיד</p>
+
+    <input id="promptInput" type="text" placeholder="לדוגמה: כלב מעופף מעל ים סגול"
+           class="w-full p-3 border rounded-xl text-right focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4">
+
+    <button onclick="generateImage()"
+            class="w-full bg-blue-600 text-white p-3 rounded-xl font-semibold hover:bg-blue-700 transition">
+      הפק תמונה
+    </button>
+
+    <div id="loader" class="mt-4 hidden text-gray-500">טוען תמונה...</div>
+
+    <div id="result" class="mt-6 hidden flex flex-col items-center gap-4">
+      <canvas id="canvas" class="w-full rounded-xl shadow-md"></canvas>
+      <button onclick="downloadImage()"
+              class="bg-green-600 text-white px-6 py-2 rounded-xl font-semibold hover:bg-green-700 transition">
+        הורד תמונה
+      </button>
+    </div>
+  </div>
+
+  <script>
+    async function generateImage() {
+      const prompt = document.getElementById("promptInput").value.trim();
+      if (!prompt) return;
+
+      const loader = document.getElementById("loader");
+      const result = document.getElementById("result");
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
+
+      loader.classList.remove("hidden");
+      result.classList.add("hidden");
+
+      try {
+        const encodedPrompt = encodeURIComponent(prompt);
+        const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}`;
+        const img = new Image();
+        img.crossOrigin = "Anonymous";
+
+        img.onload = () => {
+          // נחתוך את החלק התחתון של התמונה (watermark)
+          const cropHeight = img.height * 0.93; // שומר כ-93% מהתמונה
+          canvas.width = img.width;
+          canvas.height = cropHeight;
+          ctx.drawImage(img, 0, 0, img.width, cropHeight, 0, 0, img.width, cropHeight);
+          result.classList.remove("hidden");
+        };
+
+        img.onerror = () => {
+          alert("אירעה שגיאה בעת שליפת התמונה.");
+        };
+
+        img.src = imageUrl;
+
+      } catch (error) {
+        alert("אירעה שגיאה כללית.");
+        console.error(error);
+      } finally {
+        loader.classList.add("hidden");
+      }
+    }
+
+    function downloadImage() {
+      const canvas = document.getElementById("canvas");
+      const link = document.createElement("a");
+      link.download = "ai-image.png";
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    }
+  </script>
 </body>
 </html>
