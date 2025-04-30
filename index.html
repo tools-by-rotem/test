@@ -5,47 +5,147 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="robots" content="noindex,nofollow">
   <title>מחולל תמונות AI</title>
-  <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+    /* הגדרת צבעים וגופנים */
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f3f4f6;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow-y: auto; /* מאפשר גלילה למעלה לאחר טעינת התמונה */
     }
+
+    .container {
+      background-color: white;
+      border-radius: 16px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      padding: 24px;
+      width: 100%;
+      max-width: 500px;
+      text-align: center;
+      box-sizing: border-box;
+    }
+
+    h1 {
+      font-size: 24px;
+      font-weight: bold;
+      color: #2d3748;
+      margin-bottom: 16px;
+    }
+
+    p {
+      color: #718096;
+      margin-bottom: 16px;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      border: 2px solid #cbd5e0;
+      border-radius: 8px;
+      text-align: right;
+      margin-bottom: 16px;
+      outline: none;
+      transition: border-color 0.3s ease;
+      box-sizing: border-box;
+    }
+
+    input:focus {
+      border-color: #3182ce;
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      font-size: 16px;
+      background-color: #3182ce;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #2b6cb0;
+    }
+
+    .loader {
+      margin-top: 16px;
+      color: #718096;
+      display: none; /* התצוגה תוסתר עד תחילת טעינה */
+      justify-content: center;
+      align-items: center;
+    }
+
     .spinner {
-      border: 4px solid #f3f3f3; 
-      border-top: 4px solid #3498db;
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #3182ce;
       border-radius: 50%;
       width: 50px;
       height: 50px;
       animation: spin 1s linear infinite;
     }
+
+    .result {
+      display: none;
+      margin-top: 24px;
+      text-align: center;
+    }
+
+    .result canvas {
+      width: 100%;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .download-button {
+      margin-top: 16px;
+      padding: 12px 24px;
+      background-color: #38a169;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .download-button:hover {
+      background-color: #2f855a;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
   </style>
 </head>
-<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+<body>
 
-  <div class="bg-white shadow-2xl rounded-2xl p-6 w-full max-w-xl text-center">
-    <h1 class="text-2xl font-bold mb-4 text-gray-800">מחולל תמונות בעזרת בינה מלאכותית</h1>
-    <p class="text-gray-600 mb-4">כתוב תיאור של תמונה ותקבל תוצאה מיד</p>
+  <div class="container">
+    <h1>מחולל תמונות בעזרת בינה מלאכותית</h1>
+    <p>כתוב תיאור של תמונה ותקבל תוצאה מיד</p>
 
-    <input id="promptInput" type="text" placeholder="לדוגמה: כלב מעופף מעל ים סגול"
-           class="w-full p-3 border rounded-xl text-right focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4">
+    <input id="promptInput" type="text" placeholder="לדוגמה: כלב מעופף מעל ים סגול">
 
-    <button onclick="generateImage()"
-            class="w-full bg-blue-600 text-white p-3 rounded-xl font-semibold hover:bg-blue-700 transition">
-      הפק תמונה
-    </button>
+    <button onclick="generateImage()">הפק תמונה</button>
 
-    <div id="loader" class="mt-4 hidden text-gray-500 flex justify-center items-center">
+    <div id="loader" class="loader">
       <div class="spinner"></div>
       <span class="ml-2">טוען תמונה...</span>
     </div>
 
-    <div id="result" class="mt-6 hidden flex flex-col items-center gap-4">
-      <canvas id="canvas" class="w-full rounded-xl shadow-md"></canvas>
-      <button onclick="downloadImage()"
-              class="bg-green-600 text-white px-6 py-2 rounded-xl font-semibold hover:bg-green-700 transition">
-        הורד תמונה
-      </button>
+    <div id="result" class="result">
+      <canvas id="canvas"></canvas>
+      <button onclick="downloadImage()" class="download-button">הורד תמונה</button>
     </div>
   </div>
 
@@ -59,8 +159,8 @@
       const canvas = document.getElementById("canvas");
       const ctx = canvas.getContext("2d");
 
-      loader.classList.remove("hidden");
-      result.classList.add("hidden");
+      loader.style.display = 'flex';  // מציג את אייקון הטעינה
+      result.style.display = 'none';  // מסתיר את התוצאה לפני שהושלמה הטעינה
 
       try {
         const encodedPrompt = encodeURIComponent(prompt);
@@ -69,17 +169,16 @@
         img.crossOrigin = "Anonymous";
 
         img.onload = () => {
-          // נחתוך את החלק התחתון של התמונה (watermark)
           const cropHeight = img.height * 0.93; // שומר כ-93% מהתמונה
           canvas.width = img.width;
           canvas.height = cropHeight;
           ctx.drawImage(img, 0, 0, img.width, cropHeight, 0, 0, img.width, cropHeight);
 
           // הצגת התמונה לאחר טעינה
-          result.classList.remove("hidden");
+          result.style.display = 'block';
 
           // החבאת האנימציה לאחר טעינה
-          loader.classList.add("hidden");
+          loader.style.display = 'none';
 
           // קפיצה אוטומטית לתחתית הכלי, לכפתור ההורדה
           result.scrollIntoView({ behavior: 'smooth' });
@@ -87,7 +186,7 @@
 
         img.onerror = () => {
           alert("אירעה שגיאה בעת שליפת התמונה.");
-          loader.classList.add("hidden");
+          loader.style.display = 'none';
         };
 
         img.src = imageUrl;
@@ -95,7 +194,7 @@
       } catch (error) {
         alert("אירעה שגיאה כללית.");
         console.error(error);
-        loader.classList.add("hidden");
+        loader.style.display = 'none';
       }
     }
 
