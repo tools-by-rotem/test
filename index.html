@@ -6,6 +6,20 @@
   <meta name="robots" content="noindex,nofollow">
   <title>מחולל תמונות AI</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .spinner {
+      border: 4px solid #f3f3f3; 
+      border-top: 4px solid #3498db;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+    }
+  </style>
 </head>
 <body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
 
@@ -21,7 +35,10 @@
       הפק תמונה
     </button>
 
-    <div id="loader" class="mt-4 hidden text-gray-500">טוען תמונה...</div>
+    <div id="loader" class="mt-4 hidden text-gray-500 flex justify-center items-center">
+      <div class="spinner"></div>
+      <span class="ml-2">טוען תמונה...</span>
+    </div>
 
     <div id="result" class="mt-6 hidden flex flex-col items-center gap-4">
       <canvas id="canvas" class="w-full rounded-xl shadow-md"></canvas>
@@ -57,11 +74,17 @@
           canvas.width = img.width;
           canvas.height = cropHeight;
           ctx.drawImage(img, 0, 0, img.width, cropHeight, 0, 0, img.width, cropHeight);
+
+          // הצגת התמונה לאחר טעינה
           result.classList.remove("hidden");
+
+          // החבאת האנימציה לאחר טעינה
+          loader.classList.add("hidden");
         };
 
         img.onerror = () => {
           alert("אירעה שגיאה בעת שליפת התמונה.");
+          loader.classList.add("hidden");
         };
 
         img.src = imageUrl;
@@ -69,7 +92,6 @@
       } catch (error) {
         alert("אירעה שגיאה כללית.");
         console.error(error);
-      } finally {
         loader.classList.add("hidden");
       }
     }
