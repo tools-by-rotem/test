@@ -1,21 +1,480 @@
 <!DOCTYPE html>
-<html dir="rtl" lang="he">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex,nofollow">
-    <title>זהו עמוד ניסיונות</title>
-    <meta name="description" content="לרוב גם ככה לא יהיה פה שום דבר">
-    <script src="https://website-widgets.pages.dev/dist/sienna.min.js" defer></script>
+    <title>EtherWaves - Explore Radio Worldwide</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            overflow: hidden;
+            background: #000;
+            color: #fff;
+        }
+
+        #globe-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        #player {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            z-index: 2;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #station-info {
+            flex: 1;
+        }
+
+        #station-name {
+            font-size: 1.2rem;
+            margin-bottom: 4px;
+        }
+
+        #station-country {
+            font-size: 0.9rem;
+            color: #aaa;
+        }
+
+        #player-controls {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        #play-button {
+            background: #1db954;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+
+        #play-button:hover {
+            background: #1ed760;
+        }
+
+        #volume-control {
+            width: 100px;
+        }
+
+        #volume-slider {
+            width: 100%;
+            accent-color: #1db954;
+        }
+
+        #search-panel {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 300px;
+            z-index: 2;
+        }
+
+        #search-input {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            color: white;
+            font-size: 1rem;
+        }
+
+        #search-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        #search-results {
+            margin-top: 10px;
+            max-height: 400px;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 8px;
+            display: none;
+        }
+
+        .station-result {
+            padding: 12px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .station-result:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .station-result h3 {
+            font-size: 1rem;
+            margin-bottom: 4px;
+        }
+
+        .station-result p {
+            font-size: 0.8rem;
+            color: #aaa;
+        }
+
+        #error-message {
+            color: #ff4444;
+            margin-top: 4px;
+            font-size: 0.9rem;
+        }
+    </style>
 </head>
 <body>
-    <main class="main-content">
-        <div class="container">
-            <header class="page-header">
-                <h1>זהו עמוד ניסיונות</h1>
-                <p>לרוב לא תמצאו פה כלום, אם יהיה פה משהו זה יהיה לזמן ממש קצר ובסוף יעבור לאתר הראשי.</p>
-            </header>
+    <div id="globe-container"></div>
+    
+    <div id="player">
+        <div id="station-info">
+            <h2 id="station-name">Select a station</h2>
+            <p id="station-country"></p>
+            <p id="error-message"></p>
         </div>
-    </main> 
+        <div id="player-controls">
+            <audio id="audio-player"></audio>
+            <button id="play-button">Play</button>
+            <div id="volume-control">
+                <input type="range" id="volume-slider" min="0" max="100" value="100">
+            </div>
+        </div>
+    </div>
+
+    <div id="search-panel">
+        <input type="text" id="search-input" placeholder="Search stations...">
+        <div id="search-results"></div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.159.0/three.min.js"></script>
+    <script>
+        let scene, camera, renderer, globe;
+        const EARTH_RADIUS = 2;
+        const markers = new Map();
+
+        function initScene() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            document.getElementById('globe-container').appendChild(renderer.domElement);
+
+            camera.position.z = 5;
+
+            const ambientLight = new THREE.AmbientLight(0x404040, 1);
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+            directionalLight.position.set(5, 3, 5);
+            scene.add(ambientLight, directionalLight);
+
+            createEarth();
+            createAtmosphere();
+            createStars();
+
+            initControls();
+
+            animate();
+        }
+
+        function createEarth() {
+            const geometry = new THREE.SphereGeometry(EARTH_RADIUS, 64, 64);
+            const material = new THREE.MeshPhongMaterial({
+                map: new THREE.TextureLoader().load('https://cdn.jsdelivr.net/npm/three-globe/example/img/earth-dark.jpg'),
+                bumpMap: new THREE.TextureLoader().load('https://cdn.jsdelivr.net/npm/three-globe/example/img/earth-topology.png'),
+                bumpScale: 0.1,
+                specularMap: new THREE.TextureLoader().load('https://cdn.jsdelivr.net/npm/three-globe/example/img/earth-water.png'),
+                specular: new THREE.Color('grey'),
+                shininess: 10
+            });
+            globe = new THREE.Mesh(geometry, material);
+            scene.add(globe);
+        }
+
+        function createAtmosphere() {
+            const geometry = new THREE.SphereGeometry(EARTH_RADIUS + 0.1, 64, 64);
+            const material = new THREE.MeshPhongMaterial({
+                color: 0x3284ff,
+                transparent: true,
+                opacity: 0.1,
+                side: THREE.BackSide
+            });
+            const atmosphere = new THREE.Mesh(geometry, material);
+            scene.add(atmosphere);
+        }
+
+        function createStars() {
+            const geometry = new THREE.BufferGeometry();
+            const vertices = [];
+
+            for (let i = 0; i < 5000; i++) {
+                vertices.push(
+                    THREE.MathUtils.randFloatSpread(200),
+                    THREE.MathUtils.randFloatSpread(200),
+                    THREE.MathUtils.randFloatSpread(200)
+                );
+            }
+
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+            const material = new THREE.PointsMaterial({ color: 0xffffff, size: 0.05 });
+            const stars = new THREE.Points(geometry, material);
+            scene.add(stars);
+        }
+
+        function latLongToVector3(lat, lon, radius) {
+            const phi = (90 - lat) * (Math.PI / 180);
+            const theta = (lon + 180) * (Math.PI / 180);
+
+            const x = -(radius * Math.sin(phi) * Math.cos(theta));
+            const y = radius * Math.cos(phi);
+            const z = radius * Math.sin(phi) * Math.sin(theta);
+
+            return new THREE.Vector3(x, y, z);
+        }
+
+        function addMarker(station) {
+            if (!station.geo_lat || !station.geo_long) return;
+            
+            const markerGeometry = new THREE.SphereGeometry(0.02, 16, 16);
+            const markerMaterial = new THREE.MeshBasicMaterial({ 
+                color: 0x1db954,
+                opacity: 0.8,
+                transparent: true
+            });
+            const marker = new THREE.Mesh(markerGeometry, markerMaterial);
+            
+            const position = latLongToVector3(
+                parseFloat(station.geo_lat),
+                parseFloat(station.geo_long),
+                EARTH_RADIUS + 0.01
+            );
+            
+            marker.position.copy(position);
+            scene.add(marker);
+            markers.set(station.stationuuid, marker);
+
+            const pulseGeometry = new THREE.SphereGeometry(0.02, 16, 16);
+            const pulseMaterial = new THREE.MeshBasicMaterial({
+                color: 0x1db954,
+                transparent: true,
+                opacity: 0.4
+            });
+            const pulse = new THREE.Mesh(pulseGeometry, pulseMaterial);
+            pulse.position.copy(position);
+            scene.add(pulse);
+
+            let scale = 1;
+            function animatePulse() {
+                scale += 0.02;
+                if (scale >= 2) scale = 1;
+                
+                pulse.scale.set(scale, scale, scale);
+                pulse.material.opacity = 0.4 * (2 - scale);
+                
+                requestAnimationFrame(animatePulse);
+            }
+            animatePulse();
+        }
+
+        function clearMarkers() {
+            markers.forEach(marker => {
+                scene.remove(marker);
+            });
+            markers.clear();
+        }
+
+        function initControls() {
+            let isDragging = false;
+            let previousMousePosition = { x: 0, y: 0 };
+
+            renderer.domElement.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                previousMousePosition = { x: e.clientX, y: e.clientY };
+            });
+
+            renderer.domElement.addEventListener('mousemove', (e) => {
+                if (isDragging) {
+                    const deltaMove = {
+                        x: e.clientX - previousMousePosition.x,
+                        y: e.clientY - previousMousePosition.y
+                    };
+
+                    globe.rotation.y += deltaMove.x * 0.005;
+                    globe.rotation.x += deltaMove.y * 0.005;
+
+                    previousMousePosition = { x: e.clientX, y: e.clientY };
+                }
+            });
+
+            renderer.domElement.addEventListener('mouseup', () => {
+                isDragging = false;
+            });
+
+            renderer.domElement.addEventListener('wheel', (e) => {
+                camera.position.z = Math.max(3.5, Math.min(7, camera.position.z + e.deltaY * 0.001));
+            });
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            renderer.render(scene, camera);
+        }
+
+        const audioPlayer = document.getElementById('audio-player');
+        const playButton = document.getElementById('play-button');
+        const volumeSlider = document.getElementById('volume-slider');
+        const searchInput = document.getElementById('search-input');
+        const searchResults = document.getElementById('search-results');
+        const errorMessage = document.getElementById('error-message');
+
+        let currentStation = null;
+
+        async function searchStations(query) {
+            try {
+                const response = await fetch(`https://de1.api.radio-browser.info/json/stations/search?name=${encodeURIComponent(query)}&limit=10&has_geo_info=true`);
+                const stations = await response.json();
+                displaySearchResults(stations);
+            } catch (error) {
+                console.error('Error searching stations:', error);
+                searchResults.innerHTML = '<div class="station-result"><p>Error searching stations. Please try again.</p></div>';
+                searchResults.style.display = 'block';
+            }
+        }
+
+        function displaySearchResults(stations) {
+            searchResults.innerHTML = '';
+            searchResults.style.display = stations.length ? 'block' : 'none';
+
+            clearMarkers();
+            stations.forEach(station => {
+                addMarker(station);
+                
+                const element = document.createElement('div');
+                element.className = 'station-result';
+                element.innerHTML = `
+                    <h3>${station.name}</h3>
+                    <p>${station.country}</p>
+                `;
+                element.addEventListener('click', () => playStation(station));
+                searchResults.appendChild(element);
+            });
+        }
+
+        async function checkStreamAvailability(url) {
+            try {
+                const response = await fetch(url, { method: 'HEAD' });
+                return response.ok;
+            } catch (error) {
+                return false;
+            }
+        }
+
+        async function playStation(station) {
+            currentStation = station;
+            document.getElementById('station-name').textContent = station.name;
+            document.getElementById('station-country').textContent = station.country;
+            errorMessage.textContent = '';
+
+            let streamUrl = station.url_resolved;
+            
+            if (streamUrl.startsWith('http://')) {
+                const httpsUrl = streamUrl.replace('http://', 'https://');
+                const isHttpsAvailable = await checkStreamAvailability(httpsUrl);
+                if (isHttpsAvailable) {
+                    streamUrl = httpsUrl;
+                }
+            }
+
+            const newAudioPlayer = document.createElement('audio');
+            newAudioPlayer.volume = audioPlayer.volume;
+            
+            newAudioPlayer.onerror = () => {
+                errorMessage.textContent = 'Unable to play this station. It may be temporarily unavailable or use an unsupported format.';
+                playButton.textContent = 'Play';
+            };
+
+            newAudioPlayer.oncanplay = () => {
+                audioPlayer.parentNode.replaceChild(newAudioPlayer, audioPlayer);
+                audioPlayer = newAudioPlayer;
+                audioPlayer.play();
+                playButton.textContent = 'Pause';
+            };
+
+            newAudioPlayer.src = streamUrl;
+            searchResults.style.display = 'none';
+
+            if (station.geo_lat && station.geo_long) {
+                const marker = markers.get(station.stationuuid);
+                if (marker) {
+                    marker.material.color.setHex(0xff0000);
+                    marker.scale.set(2, 2, 2);
+                }
+            }
+        }
+
+        playButton.addEventListener('click', () => {
+            if (!currentStation) return;
+            
+            if (audioPlayer.paused) {
+                audioPlayer.play()
+                    .catch(error => {
+                        console.error('Error playing audio:', error);
+                        errorMessage.textContent = 'Error playing station. Please try again.';
+                    });
+                playButton.textContent = 'Pause';
+            } else {
+                audioPlayer.pause();
+                playButton.textContent = 'Play';
+            }
+        });
+
+        volumeSlider.addEventListener('input', (e) => {
+            audioPlayer.volume = e.target.value / 100;
+        });
+
+        let searchTimeout;
+        searchInput.addEventListener('input', (e) => {
+            clearTimeout(searchTimeout);
+            if (e.target.value.length >= 2) {
+                searchTimeout = setTimeout(() => {
+                    searchStations(e.target.value);
+                }, 300);
+            } else {
+                searchResults.style.display = 'none';
+                clearMarkers();
+            }
+        });
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        initScene();
+    </script>
 </body>
 </html>
