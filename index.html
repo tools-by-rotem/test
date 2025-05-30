@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex,nofollow">
-    <title>EtherWaves - Explore Radio Worldwide</title>
+    <title>Radiolam - Explore Radio Worldwide</title>
     <style>
         * {
             margin: 0;
@@ -668,22 +668,22 @@
         let isLoading = false;
 
         function updatePlayButton(state) {
-            playButton.innerHTML = '';
-            
-            if (state === 'loading') {
-                const loadingIcon = document.createElement('div');
-                loadingIcon.className = 'loading-icon';
-                playButton.appendChild(loadingIcon);
-            } else if (state === 'playing') {
-                const playIcon = document.createElement('div');
-                playIcon.className = 'play-icon';
-                playButton.appendChild(playIcon);
-            } else if (state === 'pause') {
-                const pauseIcon = document.createElement('div');
-                pauseIcon.className = 'pause-icon';
-                playButton.appendChild(pauseIcon);
-            }
-        }
+    playButton.innerHTML = '';
+    
+    if (state === 'loading') {
+        const loadingIcon = document.createElement('div');
+        loadingIcon.className = 'loading-icon';
+        playButton.appendChild(loadingIcon);
+    } else if (state === 'pause') {  // כשהמוזיקה מתנגנת - הצג pause
+        const pauseIcon = document.createElement('div');
+        pauseIcon.className = 'pause-icon';
+        playButton.appendChild(pauseIcon);
+    } else if (state === 'play') {  // כשהמוזיקה עצורה - הצג play
+        const playIcon = document.createElement('div');
+        playIcon.className = 'play-icon';
+        playButton.appendChild(playIcon);
+    }
+}
 
         async function searchStations(query) {
             try {
@@ -838,12 +838,12 @@
 
         // Handle audio events
         audioPlayer.addEventListener('play', () => {
-            updatePlayButton('pause');
-        });
+    updatePlayButton('pause');  // מוזיקה מתנגנת = הצג pause
+});
 
-        audioPlayer.addEventListener('pause', () => {
-            updatePlayButton('play');
-        });
+audioPlayer.addEventListener('pause', () => {
+    updatePlayButton('play');   // מוזיקה עצורה = הצג play
+});
 
         audioPlayer.addEventListener('ended', () => {
             updatePlayButton('play');
