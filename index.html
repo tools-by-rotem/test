@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex,nofollow">
-    <title>Radiolam - Explore Radio Worldwide</title>
+    <title>חושף הסיבות</title>
     <style>
         * {
             margin: 0;
@@ -13,850 +13,305 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            overflow: hidden;
-            background: #000;
-            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            direction: rtl;
         }
 
-        #globe-container {
-            position: fixed;
-            top: 0;
-            left: 0;
+        .chat-container {
             width: 100%;
-            height: 100%;
-            z-index: 1;
+            max-width: 400px;
+            height: 100vh;
+            max-height: 600px;
+            background: white;
+            border-radius: 20px;
+            border: 2px solid #000;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            margin: 20px;
         }
 
-        #player {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(10px);
+        .chat-header {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
             padding: 20px;
-            z-index: 2;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
         }
 
-        #station-info {
+        .chat-messages {
             flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f8f9fa;
         }
 
-        #station-name {
-            font-size: 1.2rem;
-            margin-bottom: 4px;
+        .message {
+            margin-bottom: 15px;
+            animation: fadeIn 0.3s ease-in;
         }
 
-        #station-country {
-            font-size: 0.9rem;
-            color: #aaa;
+        .user-message {
+            background: #007bff;
+            color: white;
+            padding: 12px 16px;
+            border-radius: 18px 18px 4px 18px;
+            margin-left: 50px;
+            word-wrap: break-word;
         }
 
-        #player-controls {
+        .bot-message {
+            background: #e9ecef;
+            color: #333;
+            padding: 12px 16px;
+            border-radius: 18px 18px 18px 4px;
+            margin-right: 50px;
+            word-wrap: break-word;
+        }
+
+        .chat-input-container {
+            padding: 15px 20px 20px 20px;
+            background: white;
+            border-top: 1px solid #eee;
             display: flex;
-            align-items: center;
-            gap: 20px;
+            gap: 10px;
+            flex-wrap: wrap;
         }
 
-        #play-button {
-            background: #1db954;
+        .chat-input {
+            flex: 1;
+            min-width: 200px;
+            padding: 12px 16px;
+            border: 2px solid #e9ecef;
+            border-radius: 25px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s;
+            direction: rtl;
+        }
+
+        .chat-input:focus {
+            border-color: #007bff;
+        }
+
+        .send-button {
+            padding: 12px 20px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
             color: white;
             border: none;
-            padding: 12px;
-            border-radius: 50%;
+            border-radius: 25px;
             cursor: pointer;
             font-weight: bold;
-            transition: all 0.2s;
-            width: 50px;
-            height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            box-shadow: 0 4px 12px rgba(29, 185, 84, 0.3);
+            transition: transform 0.2s;
+            white-space: nowrap;
+            min-width: 80px;
         }
 
-        #play-button:hover {
-            background: #1ed760;
+        .send-button:hover {
             transform: scale(1.05);
-            box-shadow: 0 6px 16px rgba(29, 185, 84, 0.4);
         }
 
-        #play-button:disabled {
-            background: #666;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
+        .send-button:active {
+            transform: scale(0.95);
         }
 
-        #volume-control {
-            width: 100px;
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
-        #volume-slider {
-            width: 100%;
-            accent-color: #1db954;
-        }
-
-        #search-panel {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            width: 300px;
-            z-index: 2;
-        }
-
-        #search-input {
-            width: 100%;
-            padding: 12px;
-            border: none;
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            color: white;
-            font-size: 1rem;
-        }
-
-        #search-input::placeholder {
-            color: rgba(255, 255, 255, 0.5);
-        }
-
-        #search-results {
-            margin-top: 10px;
-            max-height: 400px;
-            overflow-y: auto;
-            background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(10px);
-            border-radius: 8px;
+        .typing-indicator {
             display: none;
+            background: #e9ecef;
+            color: #666;
+            padding: 12px 16px;
+            border-radius: 18px 18px 18px 4px;
+            margin-right: 50px;
+            margin-bottom: 15px;
+            font-style: italic;
         }
 
-        .station-result {
-            padding: 12px;
-            cursor: pointer;
-            transition: background-color 0.2s;
+        .typing-dots {
+            display: inline-block;
         }
 
-        .station-result:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .station-result h3 {
-            font-size: 1rem;
-            margin-bottom: 4px;
-        }
-
-        .station-result p {
-            font-size: 0.8rem;
-            color: #aaa;
-        }
-
-        #error-message {
-            color: #ff4444;
-            margin-top: 4px;
-            font-size: 0.9rem;
-        }
-
-        #loading {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 3;
-            color: #1db954;
-            font-size: 1.2rem;
-        }
-
-        /* Play/Pause icons */
-        .play-icon {
-            width: 0;
-            height: 0;
-            border-left: 12px solid currentColor;
-            border-top: 8px solid transparent;
-            border-bottom: 8px solid transparent;
-            margin-left: 2px;
-        }
-
-        .pause-icon {
-            width: 12px;
-            height: 16px;
-            position: relative;
-        }
-
-        .pause-icon::before,
-        .pause-icon::after {
+        .typing-dots::after {
             content: '';
-            position: absolute;
-            width: 3px;
-            height: 16px;
-            background: currentColor;
+            animation: dots 1.5s infinite;
         }
 
-        .pause-icon::before {
-            left: 2px;
+        @keyframes dots {
+            0%, 20% { content: ''; }
+            40% { content: '.'; }
+            60% { content: '..'; }
+            80%, 100% { content: '...'; }
         }
 
-        .pause-icon::after {
-            right: 2px;
+        /* רספונסיביות למסכים קטנים */
+        @media (max-width: 480px) {
+            .chat-container {
+                margin: 10px;
+                border-radius: 15px;
+                height: calc(100vh - 20px);
+            }
+            
+            .chat-header {
+                padding: 15px;
+                font-size: 16px;
+            }
+            
+            .chat-messages {
+                padding: 15px;
+            }
+            
+            .user-message, .bot-message {
+                margin-left: 20px;
+                margin-right: 20px;
+                padding: 10px 14px;
+            }
+            
+            .chat-input-container {
+                padding: 15px;
+                gap: 8px;
+            }
+            
+            .chat-input {
+                min-width: 150px;
+                padding: 10px 14px;
+                font-size: 16px; /* מונע זום באייפון */
+            }
+            
+            .send-button {
+                padding: 10px 16px;
+                min-width: 70px;
+            }
         }
 
-        .loading-icon {
-            width: 16px;
-            height: 16px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-top: 2px solid currentColor;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        @media (max-width: 320px) {
+            .chat-input-container {
+                flex-direction: column;
+            }
+            
+            .chat-input {
+                min-width: 100%;
+            }
+            
+            .send-button {
+                width: 100%;
+                min-width: 100%;
+            }
         }
     </style>
 </head>
 <body>
-    <div id="loading">Loading radio stations...</div>
-    <div id="globe-container"></div>
-    
-    <div id="player">
-        <div id="station-info">
-            <h2 id="station-name">Select a station</h2>
-            <p id="station-country"></p>
-            <p id="error-message"></p>
+    <div class="chat-container">
+        <div class="chat-header">
+            חושף הסיבות
         </div>
-        <div id="player-controls">
-            <audio id="audio-player" preload="none" crossorigin="anonymous"></audio>
-            <button id="play-button" disabled>
-                <div class="play-icon"></div>
-            </button>
-            <div id="volume-control">
-                <input type="range" id="volume-slider" min="0" max="100" value="50">
+        
+        <div class="chat-messages" id="chatMessages">
+            <div class="message">
+                <div class="bot-message">שלום! אני כאן כדי לעזור לכם לחשוף את הסיבות האמיתיות שמסתתרות מאחורי הרצונות שלכם, ספרו לי מה אתם רוצים להשיג.</div>
             </div>
         </div>
+        
+        <div class="chat-input-container">
+            <input type="text" class="chat-input" id="chatInput" placeholder="כתוב כאן משהו...">
+            <button class="send-button" id="sendButton">שליחה</button>
+        </div>
     </div>
 
-    <div id="search-panel">
-        <input type="text" id="search-input" placeholder="Search stations...">
-        <div id="search-results"></div>
-    </div>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.159.0/three.min.js"></script>
     <script>
-        let scene, camera, renderer, globe, earthGroup;
-        const EARTH_RADIUS = 2;
-        const markers = new Map();
-        const allStations = [];
+        const chatMessages = document.getElementById('chatMessages');
+        const chatInput = document.getElementById('chatInput');
+        const sendButton = document.getElementById('sendButton');
+        const typingIndicator = document.getElementById('typingIndicator');
 
-        // Coordinate fixes for specific stations
-        const stationCoordinateFixes = {
-            'Antena 1 Açores': { lat: 38.7223, lng: -9.1393 }, // Lisbon, Portugal (mainland)
-            'Mizrahit FM Best': { lat: 32.0853, lng: 34.7818 }  // Tel Aviv, Israel
-        };
-
-        function initScene() {
-            scene = new THREE.Scene();
-            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        function addMessage(text, isUser) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message';
             
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(window.devicePixelRatio);
-            document.getElementById('globe-container').appendChild(renderer.domElement);
-
-            camera.position.z = 5;
-
-            const ambientLight = new THREE.AmbientLight(0x404040, 1);
-            const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-            directionalLight.position.set(5, 3, 5);
-            scene.add(ambientLight, directionalLight);
-
-            // Create a group to hold Earth and markers together
-            earthGroup = new THREE.Group();
-            scene.add(earthGroup);
-
-            createEarth();
-            createAtmosphere();
-            createStars();
-
-            initControls();
-            loadInitialStations();
-
-            animate();
+            const messageContent = document.createElement('div');
+            messageContent.className = isUser ? 'user-message' : 'bot-message';
+            messageContent.textContent = text;
+            
+            messageDiv.appendChild(messageContent);
+            chatMessages.appendChild(messageDiv);
+            
+            // גלילה אוטומטית למטה
+            chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 
-        function createEarth() {
-            const geometry = new THREE.SphereGeometry(EARTH_RADIUS, 64, 64);
-            const material = new THREE.MeshPhongMaterial({
-                map: new THREE.TextureLoader().load('https://cdn.jsdelivr.net/npm/three-globe/example/img/earth-dark.jpg'),
-                bumpMap: new THREE.TextureLoader().load('https://cdn.jsdelivr.net/npm/three-globe/example/img/earth-topology.png'),
-                bumpScale: 0.1,
-                specularMap: new THREE.TextureLoader().load('https://cdn.jsdelivr.net/npm/three-globe/example/img/earth-water.png'),
-                specular: new THREE.Color('grey'),
-                shininess: 10
-            });
-            globe = new THREE.Mesh(geometry, material);
-            earthGroup.add(globe);
+        function showTypingIndicator() {
+            // הוספת אינדיקטור הקלדה מתחת להודעה האחרונה
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'message';
+            typingDiv.id = 'tempTypingIndicator';
+            
+            const typingContent = document.createElement('div');
+            typingContent.className = 'bot-message';
+            typingContent.innerHTML = '<span class="typing-dots">מקליד</span>';
+            typingContent.style.fontStyle = 'italic';
+            typingContent.style.color = '#666';
+            
+            typingDiv.appendChild(typingContent);
+            chatMessages.appendChild(typingDiv);
+            
+            chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 
-        function createAtmosphere() {
-            const geometry = new THREE.SphereGeometry(EARTH_RADIUS + 0.1, 64, 64);
-            const material = new THREE.MeshPhongMaterial({
-                color: 0x3284ff,
-                transparent: true,
-                opacity: 0.1,
-                side: THREE.BackSide
-            });
-            const atmosphere = new THREE.Mesh(geometry, material);
-            earthGroup.add(atmosphere);
-        }
-
-        function createStars() {
-            const geometry = new THREE.BufferGeometry();
-            const vertices = [];
-
-            for (let i = 0; i < 5000; i++) {
-                vertices.push(
-                    THREE.MathUtils.randFloatSpread(200),
-                    THREE.MathUtils.randFloatSpread(200),
-                    THREE.MathUtils.randFloatSpread(200)
-                );
-            }
-
-            geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-            const material = new THREE.PointsMaterial({ color: 0xffffff, size: 0.05 });
-            const stars = new THREE.Points(geometry, material);
-            scene.add(stars);
-        }
-
-        function latLongToVector3(lat, lon, radius) {
-            const phi = (90 - lat) * (Math.PI / 180);
-            const theta = (lon + 180) * (Math.PI / 180);
-
-            const x = -(radius * Math.sin(phi) * Math.cos(theta));
-            const y = radius * Math.cos(phi);
-            const z = radius * Math.sin(phi) * Math.sin(theta);
-
-            return new THREE.Vector3(x, y, z);
-        }
-
-        function fixStationCoordinates(station) {
-            // Check if this station needs coordinate fixing
-            const fixedCoords = stationCoordinateFixes[station.name];
-            if (fixedCoords) {
-                station.geo_lat = fixedCoords.lat.toString();
-                station.geo_long = fixedCoords.lng.toString();
-                return true;
-            }
-
-            // Enhanced validation for coordinates
-            const lat = parseFloat(station.geo_lat);
-            const lng = parseFloat(station.geo_long);
-            
-            if (!station.geo_lat || !station.geo_long) return false;
-            if (isNaN(lat) || isNaN(lng)) return false;
-            if (Math.abs(lat) > 90 || Math.abs(lng) > 180) return false;
-            if (lat === 0 && lng === 0) return false; // Null Island
-            
-            // Filter out obviously wrong coordinates (middle of oceans)
-            // Pacific Ocean center
-            if (Math.abs(lat) < 10 && lng > 140 && lng < -140) return false;
-            // Atlantic Ocean center  
-            if (Math.abs(lat) < 10 && lng > -40 && lng < 20 && !(lat > 35 && lng > -10 && lng < 40)) return false;
-            
-            // Additional checks for specific regions
-            // Portugal/Azores - if it's a Portuguese station with coordinates in the middle of Atlantic
-            if (station.country === 'Portugal' && Math.abs(lat) < 45 && lng > -30 && lng < -20) {
-                // If it's Azores related, fix coordinates
-                if (station.name.toLowerCase().includes('açores') || station.name.toLowerCase().includes('azores')) {
-                    station.geo_lat = '38.7223';
-                    station.geo_long = '-9.1393';
-                    return true;
-                }
-            }
-            
-            // Israel - if coordinates are wrong
-            if ((station.country === 'Israel' || station.countrycode === 'IL') && 
-                (lat < 29 || lat > 34 || lng < 34 || lng > 36)) {
-                station.geo_lat = '32.0853';
-                station.geo_long = '34.7818';
-                return true;
-            }
-            
-            return true;
-        }
-
-        function addMarker(station, isHighlighted = false) {
-            if (!fixStationCoordinates(station)) return;
-            
-            const markerGeometry = new THREE.SphereGeometry(0.015, 16, 16);
-            const markerMaterial = new THREE.MeshBasicMaterial({ 
-                color: isHighlighted ? 0xff0000 : 0x1db954,
-                opacity: 0.9,
-                transparent: true
-            });
-            const marker = new THREE.Mesh(markerGeometry, markerMaterial);
-            
-            const position = latLongToVector3(
-                parseFloat(station.geo_lat),
-                parseFloat(station.geo_long),
-                EARTH_RADIUS + 0.01
-            );
-            
-            marker.position.copy(position);
-            marker.userData = { station: station };
-            
-            // Add click functionality
-            marker.callback = () => playStation(station);
-            
-            earthGroup.add(marker);
-            markers.set(station.stationuuid, { marker, station });
-
-            // Add pulsing effect for highlighted markers
-            if (isHighlighted) {
-                const pulseGeometry = new THREE.SphereGeometry(0.015, 16, 16);
-                const pulseMaterial = new THREE.MeshBasicMaterial({
-                    color: 0xff0000,
-                    transparent: true,
-                    opacity: 0.4
-                });
-                const pulse = new THREE.Mesh(pulseGeometry, pulseMaterial);
-                pulse.position.copy(position);
-                earthGroup.add(pulse);
-
-                let scale = 1;
-                function animatePulse() {
-                    scale += 0.02;
-                    if (scale >= 2) scale = 1;
-                    
-                    pulse.scale.set(scale, scale, scale);
-                    pulse.material.opacity = 0.4 * (2 - scale);
-                    
-                    if (markers.has(station.stationuuid)) {
-                        requestAnimationFrame(animatePulse);
-                    }
-                }
-                animatePulse();
+        function hideTypingIndicator() {
+            const tempIndicator = document.getElementById('tempTypingIndicator');
+            if (tempIndicator) {
+                tempIndicator.remove();
             }
         }
 
-        function clearMarkers() {
-            markers.forEach(({ marker }) => {
-                earthGroup.remove(marker);
-            });
-            markers.clear();
+        function sendMessage() {
+            const message = chatInput.value.trim();
+            if (message === '') return;
+
+            // הוספת הודעת המשתמש
+            addMessage(message, true);
+
+            // איפוס השדה
+            chatInput.value = '';
+
+            // הצגת אינדיקטור הקלדה
+            showTypingIndicator();
+
+            // המתנה קצרה ואז תגובה עם "למה?"
+            setTimeout(() => {
+                hideTypingIndicator();
+                addMessage('למה?', false);
+            }, 1000 + Math.random() * 1000); // זמן אקראי בין 1-2 שניות
         }
 
-        function highlightMarker(stationId) {
-            markers.forEach(({ marker, station }) => {
-                if (station.stationuuid === stationId) {
-                    marker.material.color.setHex(0xff0000);
-                    marker.scale.set(1.5, 1.5, 1.5);
-                } else {
-                    marker.material.color.setHex(0x1db954);
-                    marker.scale.set(1, 1, 1);
-                }
-            });
-        }
+        // שליחה בלחיצה על כפתור
+        sendButton.addEventListener('click', sendMessage);
 
-        async function loadInitialStations() {
-            try {
-                // Load stations from specific regions for better global coverage
-                const promises = [
-                    // Global popular stations
-                    fetch('https://de1.api.radio-browser.info/json/stations/topvote/150?has_geo_info=true'),
-                    
-                    // Israeli stations
-                    fetch('https://de1.api.radio-browser.info/json/stations/search?country=Israel&limit=50'),
-                    
-    // North America
-    fetch('https://de1.api.radio-browser.info/json/stations/search?country=United%20States&limit=100&has_geo_info=true'),
-    fetch('https://de1.api.radio-browser.info/json/stations/search?country=Canada&limit=60&has_geo_info=true'),
-    fetch('https://de1.api.radio-browser.info/json/stations/search?country=Mexico&limit=30&has_geo_info=true'),
-
-    // Central America & Caribbean
-    fetch('https://de1.api.radio-browser.info/json/stations/search?country=Cuba&limit=15&has_geo_info=true'),
-    fetch('https://de1.api.radio-browser.info/json/stations/search?country=Jamaica&limit=10&has_geo_info=true'),
-    fetch('https://de1.api.radio-browser.info/json/stations/search?country=Dominican%20Republic&limit=15&has_geo_info=true'),
-    fetch('https://de1.api.radio-browser.info/json/stations/search?country=Costa%20Rica&limit=10&has_geo_info=true'),
-
-    // South America
-    fetch('https://de1.api.radio-browser.info/json/stations/search?country=Brazil&limit=50&has_geo_info=true'),
-    fetch('https://de1.api.radio-browser.info/json/stations/search?country=Argentina&limit=30&has_geo_info=true'),
-    fetch('https://de1.api.radio-browser.info/json/stations/search?country=Colombia&limit=20&has_geo_info=true'),
-    fetch('https://de1.api.radio-browser.info/json/stations/search?country=Chile&limit=20&has_geo_info=true'),
-    fetch('https://de1.api.radio-browser.info/json/stations/search?country=Peru&limit=15&has_geo_info=true'),
-    fetch('https://de1.api.radio-browser.info/json/stations/search?country=Venezuela&limit=15&has_geo_info=true'),
-
-    // Western Europe
-    fetch('https://de1.api.radio-browser.info/json/stations/search?country=United%20Kingdom&limit=30&has_geo_info=true'),
-    fetch('https://de1.api.radio-browser.info/json/stations/search?country=Germany&limit=40&has_geo_info=true'),
-    fetch('https://de1.api.radio-browser.info/json/stations/search?country=France&limit=35&has_geo_info=true'),
-    fetch('https://de1.api.radio-browser.info/json/stations/search?country=Netherlands&limit=25&has_geo_info=true'),
-    fetch('https://de1.api.radio-browser.info/json/stations/search?country=Belgium&limit=20&has_geo_info=true'),
-    fetch('https://de1.api.radio-browser.info/json/stations/search?country=Switzerland&limit=20&has_geo_info=true'),
-    fetch('https://de1.api.radio-browser.info/json/stations/search?country=Austria&limit=20&has_geo_info=true'),
-
-    // Southern Europe
-    fetch('https://de1.api.radio-browser.info/json/stations/search?country=Italy&limit=30&has_geo_info=true'),
-    fetch('https://de1.api.radio-browser.info/json/stations/search?country=Spain&limit=30&has_geo_info=true'),
-    fetch('https://de1.api.radio-browser.info/json/stations/search?country=Portugal&limit=15&has_geo_info=true'),
-    fetch('https://de1.api.radio-browser.info/json/stations/search?country=Greece&limit=15&has_geo_info=true'),
-
-    // Northern Europe
-    fetch('https://de1.api.radio-browser.info/json/stations/search?country=Sweden&limit=20&has_geo_info=true'),
-    fetch('https://de1.api.radio-browser.info/json/stations/search?country=Norway&limit=15&has_geo_info=true'),
-    fetch('https://de1.api.radio-browser.info/json/stations/search?country=Finland&limit=15&has_geo_info=true'),
-    fetch('https://de1.api.radio-browser.info/json/stations/search?country=Denmark&limit=15&has_geo_info=true'),
-    fetch('https://de1.api.radio-browser.info/json/stations/search?country=Iceland&limit=10&has_geo_info=true'),
-
-    // Eastern Europe
-    fetch('https://de1.api.radio-browser.info/json/stations/search?country=Poland&limit=30&has_geo_info=true'),
-    fetch('https://de1.api.radio-browser.info/json/stations/search?country=Ukraine&limit=25&has_geo_info=true'),
-    fetch('https://de1.api.radio-browser.info/json/stations/search?country=Romania&limit=20&has_geo_info=true'),
-
-    // Middle East
-    fetch('https://de1.api.radio-browser.info/json/stations/search?country=Israel&limit=50&has_geo_info=true'),
-    fetch('https://de1.api.radio-browser.info/json/stations/search?country=Turkey&limit=25&has_geo_info=true'),
-    fetch('https://de1.api.radio-browser.info/json/stations/search?country=Iran&limit=15&has_geo_info=true'),
-    fetch('https://de1.api.radio-browser.info/json/stations/search?country=Iraq&limit=10&has_geo_info=true'),
-    fetch('https://de1.api.radio-browser.info/json/stations/search?country=Lebanon&limit=10&has_geo_info=true'),
-    fetch('https://de1.api.radio-browser.info/json/stations/search?country=Saudi%20Arabia&limit=10&has_geo_info=true'),
-    fetch('https://de1.api.radio-browser.info/json/stations/search?country=United%20Arab%20Emirates&limit=10&has_geo_info=true'),
-
-    // Africa
-    fetch('https://de1.api.radio-browser.info/json/stations/search?country=Nigeria&limit=30&has_geo_info=true'),
-    fetch('https://de1.api.radio-browser.info/json/stations/search?country=South%20Africa&limit=30&has_geo_info=true'),
-    fetch('https://de1.api.radio-browser.info/json/stations/search?country=Egypt&limit=20&has_geo_info=true'),
-    fetch('https://de1.api.radio-browser.info/json/stations/search?country=Kenya&limit=20&has_geo_info=true'),
-    fetch('https://de1.api.radio-browser.info/json/stations/search?country=Ghana&limit=15&has_geo_info=true'),
-    fetch('https://de1.api.radio-browser.info/json/stations/search?country=Morocco&limit=15&has_geo_info=true'),
-
-    // Asia
-    fetch('https://de1.api.radio-browser.info/json/stations/search?country=India&limit=40&has_geo_info=true'),
-    fetch('https://de1.api.radio-browser.info/json/stations/search?country=China&limit=30&has_geo_info=true'),
-    fetch('https://de1.api.radio-browser.info/json/stations/search?country=Japan&limit=30&has_geo_info=true'),
-    fetch('https://de1.api.radio-browser.info/json/stations/search?country=South%20Korea&limit=20&has_geo_info=true'),
-    fetch('https://de1.api.radio-browser.info/json/stations/search?country=Thailand&limit=15&has_geo_info=true'),
-    fetch('https://de1.api.radio-browser.info/json/stations/search?country=Indonesia&limit=20&has_geo_info=true'),
-    fetch('https://de1.api.radio-browser.info/json/stations/search?country=Philippines&limit=20&has_geo_info=true'),
-    fetch('https://de1.api.radio-browser.info/json/stations/search?country=Vietnam&limit=15&has_geo_info=true'),
-
-    // Oceania
-    fetch('https://de1.api.radio-browser.info/json/stations/search?country=Australia&limit=50&has_geo_info=true'),
-    fetch('https://de1.api.radio-browser.info/json/stations/search?country=New%20Zealand&limit=20&has_geo_info=true'),
-    fetch('https://de1.api.radio-browser.info/json/stations/search?country=Fiji&limit=10&has_geo_info=true')
-
-                ];
-
-                const responses = await Promise.allSettled(promises);
-                const stationArrays = responses
-                    .filter(response => response.status === 'fulfilled')
-                    .map(response => response.value)
-                    .map(response => response.json());
-                
-                const resolvedArrays = await Promise.all(stationArrays);
-                
-                // Combine all stations
-                const allStationsRaw = [];
-                resolvedArrays.forEach(stations => {
-                    if (Array.isArray(stations)) {
-                        allStationsRaw.push(...stations);
-                    }
-                });
-                
-                // Remove duplicates and validate coordinates
-                const seenIds = new Set();
-                const validStations = allStationsRaw.filter(station => {
-                    if (seenIds.has(station.stationuuid)) return false;
-                    seenIds.add(station.stationuuid);
-                    
-                    return fixStationCoordinates(station);
-                });
-
-                // Sort by vote count and geographical diversity
-                validStations.sort((a, b) => (b.votes || 0) - (a.votes || 0));
-                
-                // Ensure we have Israeli stations first
-                const israeliFirst = validStations.filter(s => s.country === 'Israel' || s.countrycode === 'IL');
-                const others = validStations.filter(s => s.country !== 'Israel' && s.countrycode !== 'IL');
-                
-                const selectedStations = [...israeliFirst, ...others.slice(0, 350)]; // Up to 350 + Israeli stations
-                
-                allStations.push(...selectedStations);
-                
-                selectedStations.forEach(station => addMarker(station));
-                
-                document.getElementById('loading').style.display = 'none';
-                console.log(`Loaded ${selectedStations.length} radio stations worldwide`);
-                console.log(`Israeli stations: ${israeliFirst.length}`);
-                
-            } catch (error) {
-                console.error('Error loading initial stations:', error);
-                document.getElementById('loading').textContent = 'Error loading stations. Try refreshing the page.';
-            }
-        }
-
-        function initControls() {
-            let isDragging = false;
-            let previousMousePosition = { x: 0, y: 0 };
-            const raycaster = new THREE.Raycaster();
-            const mouse = new THREE.Vector2();
-
-            renderer.domElement.addEventListener('mousedown', (e) => {
-                isDragging = true;
-                previousMousePosition = { x: e.clientX, y: e.clientY };
-            });
-
-            renderer.domElement.addEventListener('mousemove', (e) => {
-                if (isDragging) {
-                    const deltaMove = {
-                        x: e.clientX - previousMousePosition.x,
-                        y: e.clientY - previousMousePosition.y
-                    };
-
-                    earthGroup.rotation.y += deltaMove.x * 0.005;
-                    earthGroup.rotation.x += deltaMove.y * 0.005;
-
-                    // Limit vertical rotation
-                    earthGroup.rotation.x = Math.max(-Math.PI/2, Math.min(Math.PI/2, earthGroup.rotation.x));
-
-                    previousMousePosition = { x: e.clientX, y: e.clientY };
-                }
-            });
-
-            renderer.domElement.addEventListener('mouseup', (e) => {
-                // Check for marker clicks only if we haven't dragged much
-                if (isDragging && Math.abs(e.clientX - previousMousePosition.x) < 5 && Math.abs(e.clientY - previousMousePosition.y) < 5) {
-                    mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
-                    mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
-
-                    raycaster.setFromCamera(mouse, camera);
-                    const intersects = raycaster.intersectObjects(earthGroup.children.filter(child => child.userData.station));
-
-                    if (intersects.length > 0) {
-                        const station = intersects[0].object.userData.station;
-                        if (station) {
-                            playStation(station);
-                        }
-                    }
-                }
-                isDragging = false;
-            });
-
-            renderer.domElement.addEventListener('wheel', (e) => {
-                camera.position.z = Math.max(3.5, Math.min(7, camera.position.z + e.deltaY * 0.001));
-            });
-        }
-
-        function animate() {
-            requestAnimationFrame(animate);
-            renderer.render(scene, camera);
-        }
-
-        const audioPlayer = document.getElementById('audio-player');
-        const playButton = document.getElementById('play-button');
-        const volumeSlider = document.getElementById('volume-slider');
-        const searchInput = document.getElementById('search-input');
-        const searchResults = document.getElementById('search-results');
-        const errorMessage = document.getElementById('error-message');
-
-        let currentStation = null;
-        let isLoading = false;
-
-        function updatePlayButton(state) {
-    playButton.innerHTML = '';
-    
-    if (state === 'loading') {
-        const loadingIcon = document.createElement('div');
-        loadingIcon.className = 'loading-icon';
-        playButton.appendChild(loadingIcon);
-    } else if (state === 'pause') {  // כשהמוזיקה מתנגנת - הצג pause
-        const pauseIcon = document.createElement('div');
-        pauseIcon.className = 'pause-icon';
-        playButton.appendChild(pauseIcon);
-    } else if (state === 'play') {  // כשהמוזיקה עצורה - הצג play
-        const playIcon = document.createElement('div');
-        playIcon.className = 'play-icon';
-        playButton.appendChild(playIcon);
-    }
-}
-
-        async function searchStations(query) {
-            try {
-                const response = await fetch(`https://de1.api.radio-browser.info/json/stations/search?name=${encodeURIComponent(query)}&limit=15&has_geo_info=true`);
-                const stations = await response.json();
-                displaySearchResults(stations);
-            } catch (error) {
-                console.error('Error searching stations:', error);
-                searchResults.innerHTML = '<div class="station-result"><p>Error searching stations. Please try again.</p></div>';
-                searchResults.style.display = 'block';
-            }
-        }
-
-        function displaySearchResults(stations) {
-            searchResults.innerHTML = '';
-            searchResults.style.display = stations.length ? 'block' : 'none';
-
-            clearMarkers();
-            
-            // Add search results
-            stations.forEach(station => {
-                addMarker(station);
-                
-                const element = document.createElement('div');
-                element.className = 'station-result';
-                element.innerHTML = `
-                    <h3>${station.name}</h3>
-                    <p>${station.country} ${station.state ? '- ' + station.state : ''}</p>
-                `;
-                element.addEventListener('click', () => playStation(station));
-                searchResults.appendChild(element);
-            });
-        }
-
-        async function playStation(station) {
-            if (isLoading) return;
-            
-            isLoading = true;
-            currentStation = station;
-            playButton.disabled = true;
-            updatePlayButton('loading');
-            
-            document.getElementById('station-name').textContent = station.name;
-            document.getElementById('station-country').textContent = station.country + (station.state ? ', ' + station.state : '');
-            errorMessage.textContent = '';
-
-            try {
-                // Stop current audio
-                audioPlayer.pause();
-                audioPlayer.src = '';
-
-                let streamUrl = station.url_resolved || station.url;
-                
-                // Try to use HTTPS if possible
-                if (streamUrl.startsWith('http://')) {
-                    streamUrl = streamUrl.replace('http://', 'https://');
-                }
-
-                audioPlayer.src = streamUrl;
-                audioPlayer.volume = volumeSlider.value / 100;
-                
-                // Add event listeners
-                const onCanPlay = () => {
-                    audioPlayer.removeEventListener('canplay', onCanPlay);
-                    audioPlayer.removeEventListener('error', onError);
-                    playButton.disabled = false;
-                    updatePlayButton('pause');
-                    audioPlayer.play().catch(onError);
-                    isLoading = false;
-                    
-                    highlightMarker(station.stationuuid);
-                    searchResults.style.display = 'none';
-                };
-
-                const onError = (error) => {
-                    console.error('Audio error:', error);
-                    audioPlayer.removeEventListener('canplay', onCanPlay);
-                    audioPlayer.removeEventListener('error', onError);
-                    
-                    // Try fallback with original HTTP URL
-                    if (streamUrl.startsWith('https://') && (station.url_resolved || station.url).startsWith('http://')) {
-                        streamUrl = station.url_resolved || station.url;
-                        audioPlayer.src = streamUrl;
-                        audioPlayer.addEventListener('canplay', onCanPlay);
-                        audioPlayer.addEventListener('error', () => {
-                            errorMessage.textContent = 'Unable to play this station. It may be offline or use an unsupported format.';
-                            updatePlayButton('play');
-                            playButton.disabled = false;
-                            isLoading = false;
-                        });
-                        return;
-                    }
-                    
-                    errorMessage.textContent = 'Unable to play this station. It may be offline or use an unsupported format.';
-                    updatePlayButton('play');
-                    playButton.disabled = false;
-                    isLoading = false;
-                };
-
-                audioPlayer.addEventListener('canplay', onCanPlay);
-                audioPlayer.addEventListener('error', onError);
-                
-                audioPlayer.load();
-
-            } catch (error) {
-                console.error('Error playing station:', error);
-                errorMessage.textContent = 'Error playing station. Please try again.';
-                updatePlayButton('play');
-                playButton.disabled = false;
-                isLoading = false;
-            }
-        }
-
-        playButton.addEventListener('click', () => {
-            if (!currentStation || isLoading) return;
-            
-            if (audioPlayer.paused) {
-                audioPlayer.play()
-                    .then(() => {
-                        updatePlayButton('pause');
-                    })
-                    .catch(error => {
-                        console.error('Error playing audio:', error);
-                        errorMessage.textContent = 'Error playing station. Please try again.';
-                    });
-            } else {
-                audioPlayer.pause();
-                updatePlayButton('play');
+        // שליחה בלחיצה על Enter
+        chatInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
             }
         });
 
-        volumeSlider.addEventListener('input', (e) => {
-            audioPlayer.volume = e.target.value / 100;
-        });
-
-        let searchTimeout;
-        searchInput.addEventListener('input', (e) => {
-            clearTimeout(searchTimeout);
-            if (e.target.value.length >= 2) {
-                searchTimeout = setTimeout(() => {
-                    searchStations(e.target.value);
-                }, 300);
-            } else {
-                searchResults.style.display = 'none';
-                // Restore initial stations when search is cleared
-                if (e.target.value.length === 0) {
-                    clearMarkers();
-                    allStations.forEach(station => addMarker(station));
-                }
-            }
-        });
-
-        // Handle audio events
-        audioPlayer.addEventListener('play', () => {
-    updatePlayButton('pause');  // מוזיקה מתנגנת = הצג pause
-});
-
-audioPlayer.addEventListener('pause', () => {
-    updatePlayButton('play');   // מוזיקה עצורה = הצג play
-});
-
-        audioPlayer.addEventListener('ended', () => {
-            updatePlayButton('play');
-        });
-
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
-
-        // Initialize the scene
-        initScene();
+        // פוקוס על שדה הקלט בעת טעינת הדף
+        chatInput.focus();
     </script>
 </body>
 </html>
