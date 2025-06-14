@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex,nofollow">
-    <title>המרת פורמט וכיווץ משקל תמונה - כלי משולב | Tools by Rotem</title>
-    <meta name="description" content="כלי מתקדם להמרת פורמט תמונה ולכיווץ משקל תמונה תוך שמירה על איכות גבוהה. מושלם לשימושים אישיים או מקצועיים, חוסך זמן ומשפר ביצועי טעינת אתרים. להמרה וכיווץ לחצו >>>">
+    <title>המרת פורמט וכיווץ תמונות - כלי משולב | Tools by Rotem</title>
+    <meta name="description" content="כלי מתקדם להמרת פורמט ולכיווץ תמונות תוך שמירה על איכות תמונה גבוהה. מושלם לשימושים אישיים או מקצועיים, חוסך זמן ומשפר ביצועי טעינת אתרים. להמרה וכיווץ לחצו >>>">
     <link rel="canonical" href="https://tools-by-rotem.github.io/webtools/image-minify-converter" />
     <link rel="icon" type="image/x-icon" href="/webtools/site-favicon.ico">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/compressorjs/1.1.1/compressor.min.js"></script>
@@ -260,7 +260,7 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* Responsive Styles */
+        /* Responsive Styles - תיקון מרכוז במובייל */
         @media (max-width: 768px) {
             .header-container {
                 padding: 0 1rem;
@@ -268,7 +268,14 @@
 
             .container {
                 padding: 1rem;
-                margin: 1rem;
+                margin: 1rem auto; /* השינוי העיקרי - הוספת auto למרכוז */
+                max-width: calc(100% - 2rem); /* הבטחה שהקונטיינר לא יחרוג מהמסך */
+            }
+
+            .article-container {
+                margin: 1rem auto 3rem auto; /* גם כאן תיקון למרכוז */
+                padding: 1rem;
+                max-width: calc(100% - 2rem);
             }
 
             .footer-container {
