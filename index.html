@@ -1,21 +1,524 @@
 <!DOCTYPE html>
-<html dir="rtl" lang="he">
+<html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex,nofollow">
-    <title>זהו עמוד ניסיונות</title>
-    <meta name="description" content="לרוב גם ככה לא יהיה פה שום דבר">
+    <title>המרת פורמט וכיווץ משקל תמונה - כלי משולב | Tools by Rotem</title>
+    <meta name="description" content="כלי מתקדם להמרת פורמט תמונה ולכיווץ משקל תמונה תוך שמירה על איכות גבוהה. מושלם לשימושים אישיים או מקצועיים, חוסך זמן ומשפר ביצועי טעינת אתרים. להמרה וכיווץ לחצו >>>">
+    <link rel="canonical" href="https://tools-by-rotem.github.io/webtools/image-minify-converter" />
+    <link rel="icon" type="image/x-icon" href="/webtools/site-favicon.ico">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/compressorjs/1.1.1/compressor.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Header Styles */
+        .main-header {
+            background-color: #2d3436;
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .logo img {
+            height: 60px;
+            width: auto;
+        }
+
+        /* Main Content Styles */
+        .main-content {
+            flex: 1;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            max-width: 600px;
+            width: 100%;
+            margin: 2rem auto;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .input-group {
+            margin-bottom: 1rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #666;
+        }
+
+        input[type="file"] {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .format-buttons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 1rem;
+        }
+
+        .format-button {
+            padding: 10px;
+            border: 1px solid #ddd;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .format-button.selected {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 1rem;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        /* Footer Styles */
+        .main-footer {
+            background-color: #2d3436;
+            color: white;
+            padding: 3rem 0 1.5rem;
+            margin-top: auto;
+        }
+
+        .footer-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .footer-section {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+
+        .footer-section p {
+            color: white;
+            margin-bottom: 1rem;
+	font-weight: bold;
+        }
+
+        .footer-section ul {
+            list-style: none;
+        }
+
+        .footer-section ul li {
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-section a {
+            color: #ddd;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-section a:hover {
+            color: #0984e3;
+        }
+
+        .social-icons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        .social-icons img {
+            width: 24px;
+            height: 24px;
+            transition: opacity 0.3s ease;
+        }
+
+        .social-icons a:hover img {
+            opacity: 0.8;
+        }
+
+        .footer-bottom {
+            text-align: center;
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid #444;
+        }
+
+        /* Other Existing Styles */
+        #result {
+            margin-top: 1rem;
+            text-align: center;
+        }
+
+        #preview {
+            max-width: 50%;
+            margin-top: 1rem;
+            display: none;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        #downloadButton {
+            display: none;
+            margin-top: 1rem;
+        }
+
+        #loading {
+            display: none;
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+.article-container {
+      max-width: 850px;
+      margin: 0 auto;
+      padding: 2rem;
+      background-color: #fff;
+      box-shadow: 0 0 15px rgba(0,0,0,0.05);
+      border-radius: 12px;
+      margin-top: 3rem;
+      margin-bottom: 3rem;
+    }
+
+    h2 {
+      color: #2c3e50;
+      font-size: 1.6rem;
+      margin-top: 2rem;
+    }
+
+    p {
+      margin-bottom: 1rem;
+    }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive Styles */
+        @media (max-width: 768px) {
+            .header-container {
+                padding: 0 1rem;
+            }
+
+            .container {
+                padding: 1rem;
+                margin: 1rem;
+            }
+
+            .footer-container {
+                grid-template-columns: 1fr;
+                text-align: center;
+                padding: 0 1rem;
+            }
+
+            .footer-section {
+                align-items: center;
+            }
+
+            .format-buttons {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            #preview {
+                max-width: 100%;
+            }
+        }
+    </style>
     <script src="https://website-widgets.pages.dev/dist/sienna.min.js" defer></script>
 </head>
 <body>
+    <header class="main-header">
+        <div class="header-container">
+            <a href="https://tools-by-rotem.github.io/webtools/" class="logo">
+                <img src="https://tools-by-rotem.github.io/webtools/site-logo.png" alt="רותם קנון לוגו">
+            </a>
+        </div>
+    </header>
+
     <main class="main-content">
         <div class="container">
-            <header class="page-header">
-                <h1>זהו עמוד ניסיונות</h1>
-                <p>לרוב לא תמצאו פה כלום, אם יהיה פה משהו זה יהיה לזמן ממש קצר ובסוף יעבור לאתר הראשי.</p>
-            </header>
+            <h1>כלי משולב להמרת פורמט וכיווץ משקל תמונה</h1>
+            <div class="input-group">
+                <label for="imageInput">בחרו תמונה:</label>
+                <input type="file" id="imageInput" accept="image/*">
+            </div>
+            <div class="input-group">
+                <div class="format-buttons" id="formatButtons"></div>
+            </div>
+            <button id="convertButton">המרה וכווץ</button>
+            <div id="loading">
+                <div class="spinner"></div>
+                <p>מעבדים את התמונה...</p>
+            </div>
+            <div id="result"></div>
+            <img id="preview" alt="תצוגה מקדימה">
+            <button id="downloadButton">הורדת תמונה ממוטבת</button>
         </div>
-    </main> 
+    </main>
+
+<div class="article-container">
+    <section>
+      <h2>למה בכלל לכווץ תמונות?</h2>
+      <p>רובנו לא באמת עוצרים לחשוב על זה, אבל התמונות שאנחנו מעלים לאתר משפיעות מאוד על מהירות הטעינה שלו. ולמה זה חשוב? כי אף אחד לא אוהב לחכות. אם דף נטען לאט - הגולשים פשוט עוזבים. שנייה לפני שהם רואים מה יש לך להציע, הם כבר חזרו לגוגל.</p>
+    </section>
+
+    <section>
+      <h2>כיווץ תמונות = אתר מהיר יותר</h2>
+      <p>
+כיווץ תמונות אומר פשוט להקטין את המשקל שלהן - בלי לפגוע בצורה דרמטית באיכות. זה כמו לדחוס מזוודה בצורה חכמה – אותו תוכן, פחות מקום. כשאתה מכווץ תמונות באתר, הדפדפן טוען אותן מהר יותר, וזה משפיע ישירות על חוויית המשתמש, על אחוזי הנטישה וגם על הדירוג בגוגל. כן, גם גוגל אוהב אתרים מהירים.
+      </p>
+    </section>
+
+    <section>
+      <h2>למה כדאי להמיר תמונות לפורמטים מודרניים?</h2>
+      <p>
+פורמטים חדשים כמו WebP יודעים לשמור על איכות מעולה - אבל עם משקל קטן משמעותית מ-JPEG או PNG. הם פשוט יעילים יותר. רוב הדפדפנים היום כבר תומכים בהם, ככה שאין ממש סיבה להמשיך להשתמש בפורמטים מיושנים כשאפשר לחסוך בקלות גם 30%-50% במשקל.
+      </p>
+    </section>
+
+    <section>
+      <h2>לראות בעיניים מה באמת קורה</h2>
+      <p>
+        כדי להמחיש עד כמה טעינה של תמונות משפיעה, פיתחתי <strong><a href="https://chromewebstore.google.com/detail/image-load-timer/mifnpfmhehgdbhilbjgcknlnkblaepjo" target="_blank" rel="noopener noreferrer">תוסף כרום</a></strong>
+ שמראה את זמני הטעינה של כל התמונות בעמוד אינטרנט בו אתם נמצאים. לא רק זה - אפשר גם לסנן את התמונות לפי זמן טעינה או לפי המשקל שלהן. זה נותן תמונה ברורה של "מי מאט את האתר", ואיפה שווה להשקיע את האנרגיה קודם כל.
+      </p>
+    </section>
+
+    <section>
+      <h2>לסיכום - תחשבו קטן</h2>
+      <p>
+        תמונות כבדות זה כמו לסחוב תיק גב מלא אבנים – הן פשוט מאטות את כל הדרך. כשמכווצים תמונות, האתר נטען מהר יותר, נראה טוב יותר, והחוויה לגולש משתפרת בלי שהוא בכלל שם לב. הכלי שבניתי כאן נועד בדיוק בשביל זה – לעזור לכם להוריד משקל מיותר מהדפים שלכם, בלי כאבי ראש ובלי להתפשר על איכות.
+      </p>
+    </section>
+  </div>
+
+    <footer class="main-footer">
+        <div class="footer-container">
+            <div class="footer-section">
+                <p>רשתות חברתיות</p>
+                <div class="social-icons">
+                    <a href="https://www.linkedin.com/in/rotem-kanon" target="_blank">
+                        <img src="https://cdn-icons-png.flaticon.com/512/145/145807.png" alt="LinkedIn">
+                    </a>
+                    <a href="https://github.com/tools-by-rotem" target="_blank">
+                        <img src="https://images.icon-icons.com/3685/PNG/512/github_logo_icon_229278.png" alt="GitHub">
+                    </a>
+                    <a href="https://www.tiktok.com/@rotemkanon" target="_blank">
+                        <img src="https://cdn-icons-png.flaticon.com/512/4782/4782345.png" alt="Tiktok">
+                    </a>
+                </div>
+            </div>
+            <div class="footer-section">
+                <p>ניווט באתר</p>
+                <ul>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/">ספריית הכלים</a></li>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/accessibility-statement">הצהרת נגישות</a></li>
+		    <li><a href="https://tools-by-rotem.github.io/webtools/sitemap">מפת אתר</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <p>כמויות חיפושים</p>
+                <ul>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/google-search-volume">כמות חיפושים בגוגל</a></li>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/spotify-search-volume">כמות חיפושים בספוטיפיי</a></li>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/soundcloud-search-volume">כמות חיפושים בסאונדקלאוד </a></li>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/competitors-traffic">חישוב תנועה לאתרי מתחרים </a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <p>תצוגה מקדימה</p>
+                <ul>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/open-graph-checker">בדיקת Open Graph</a></li>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/google-serp-preview">תצוגה מקדימה לנראות בגוגל</a></li>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/social-link-preview">תצוגה מקדימה לרשתות חברתיות</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <p>אופטימיזציה</p>
+                <ul>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/page-speed-test">בדיקת מהירות טעינה</a></li>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/mobile-simulator">בדיקת תאימות למכשירים ניידים</a></li>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/image-minify-converter">המרת פורמט וכיווץ משקל תמונה</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <p>יצירה ועיצוב</p>
+                <ul>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/background-remover">הסרת רקע מתמונה</a></li>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/draw">ציור אינטראקטיבי</a></li>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/image-color-identifier">זיהוי צבעי תמונה</a></li>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/infographics">יצירת אינפוגרפיקות</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <p>נגישות</p>
+                <ul>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/accessibility-toolbar">סרגל נגישות</a></li>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/accessibility-checker">בדיקת נגישות לאתר אינטרנט</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <p>שונות</p>
+                <ul>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/navigation-links-generator">מחולל קישורי ניווט</a></li>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/reverse-typing-fix">תיקון הקלדה הפוכה</a></li>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/strong-password-generator">מחולל סיסמאות חזקות</a></li>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/time-to-go-home">הגיע הזמן ללכת הביתה</a></li>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/resume-scanner">התאמת קורות חיים לסורקים אוטומטיים</a></li>
+		    <li><a href="https://tools-by-rotem.github.io/webtools/time-zone-converter">המרת זמן בינלאומי</a></li>
+                    <li><a href="https://tools-by-rotem.github.io/webtools/fahrenheit-to-celsius">המרת פרנהייט לצלזיוס</a></li>
+		    <li><a href="https://tools-by-rotem.github.io/webtools/screen-size-checker">בדיקת גודל מסך</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2025 כל הזכויות שמורות לרותם קנון</p>
+        </div>
+    </footer>
+
+    <script>
+        const formats = ['png', 'jpeg', 'webp', 'avif', 'gif', 'ico', 'heic', 'tiff', 'bmp'];
+        const formatButtons = document.getElementById('formatButtons');
+        let selectedFormat = 'jpeg';
+
+        formats.forEach(format => {
+            const button = document.createElement('div');
+            button.className = 'format-button';
+            button.textContent = format.toUpperCase();
+            button.onclick = () => {
+                document.querySelectorAll('.format-button').forEach(btn => btn.classList.remove('selected'));
+                button.classList.add('selected');
+                selectedFormat = format;
+            };
+            formatButtons.appendChild(button);
+        });
+
+        document.querySelector('.format-button').classList.add('selected');
+
+        document.getElementById('convertButton').addEventListener('click', function() {
+            const imageInput = document.getElementById('imageInput');
+            const resultDiv = document.getElementById('result');
+            const previewImg = document.getElementById('preview');
+            const downloadButton = document.getElementById('downloadButton');
+            const loadingDiv = document.getElementById('loading');
+
+            if (imageInput.files.length === 0) {
+                alert('אנא בחרו תמונה');
+                return;
+            }
+
+            loadingDiv.style.display = 'block';
+            resultDiv.innerHTML = '';
+            previewImg.style.display = 'none';
+            downloadButton.style.display = 'none';
+
+            const file = imageInput.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                new Compressor(file, {
+                    quality: 0.9,
+                    mimeType: `image/${selectedFormat}`,
+                    maxWidth: 1920,
+                    maxHeight: 1080,
+                    convertSize: 1000000,
+                    success(result) {
+                        loadingDiv.style.display = 'none';
+
+                        const url = URL.createObjectURL(result);
+                        previewImg.src = url;
+                        previewImg.style.display = 'block';
+
+                        downloadButton.style.display = 'block';
+                        downloadButton.onclick = () => {
+                            const link = document.createElement('a');
+                            link.href = url;
+                            link.download = `converted_image.${selectedFormat}`;
+                            link.click();
+                        };
+
+                        const originalSize = (file.size / 1024).toFixed(2);
+                        const newSize = (result.size / 1024).toFixed(2);
+                        const compressionRatio = ((1 - result.size / file.size) * 100).toFixed(2);
+
+                        resultDiv.innerHTML = `<p>גודל מקורי: ${originalSize} KB, גודל חדש: ${newSize} KB, יחס דחיסה: ${compressionRatio}%</p>`;
+                    },
+                    error(err) {
+                        loadingDiv.style.display = 'none';
+                        console.error(err.message);
+                        alert('אירעה שגיאה בעת המרת התמונה');
+                    },
+                });
+            };
+
+            reader.readAsDataURL(file);
+        });
+    </script>
 </body>
 </html>
