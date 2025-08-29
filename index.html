@@ -249,9 +249,8 @@
 /* הווידאו */
 .modal-content iframe {
   width: 100%;
-  height: auto;
-  aspect-ratio: 9/16;
-  max-height: calc(100vh - 100px);
+  height: calc(100vh - 60px);
+  min-height: 400px;
   border-radius: 0 0 10px 10px;
 }
 
@@ -308,7 +307,12 @@
             .modal-content {
                 margin: 10px auto;
                 width: 95%;
-                max-height: calc(100vh - 20px);
+                height: calc(100vh - 20px);
+            }
+            
+            .modal-content iframe {
+                height: calc(100vh - 80px);
+                min-height: 300px;
             }
             
             .close {
