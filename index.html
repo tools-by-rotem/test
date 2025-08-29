@@ -228,19 +228,31 @@
   height: 100%;
   overflow: auto;
   background: rgba(0,0,0,0.8);
+  padding: 20px;
 }
 
 /* תיבת הפופאפ */
 .modal-content {
   position: relative;
-  margin: 40px auto;
+  margin: 20px auto;
   padding: 0;
-  width: 480px;
-  max-width: 95%;
+  width: 90%;
+  max-width: 480px;
   background: #000;
   border-radius: 10px;
   box-shadow: 0 5px 20px rgba(0,0,0,0.3);
   text-align: center;
+  max-height: calc(100vh - 40px);
+  overflow: hidden;
+}
+
+/* הווידאו */
+.modal-content iframe {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 9/16;
+  max-height: calc(100vh - 100px);
+  border-radius: 0 0 10px 10px;
 }
 
 /* כפתור סגירה */
@@ -286,6 +298,23 @@
 
             .article-container h3 {
                 font-size: 1.3em;
+            }
+            
+            /* מיקום מיוחד למובייל */
+            .modal {
+                padding: 10px;
+            }
+            
+            .modal-content {
+                margin: 10px auto;
+                width: 95%;
+                max-height: calc(100vh - 20px);
+            }
+            
+            .close {
+                font-size: 25px;
+                top: 5px;
+                right: 15px;
             }
         }
       .main-footer {
@@ -468,7 +497,7 @@
                <div id="tutorialModal" class="modal">
   <div class="modal-content">
     <span class="close" onclick="closeTutorial()">&times;</span>
-    <iframe id="tutorialVideo" width="468" height="832"
+    <iframe id="tutorialVideo" 
       src=""
       title="מציאת הופעות ואירועים בכניסה חופשית | ספריית הכלים של רותם קנון"
       frameborder="0"
